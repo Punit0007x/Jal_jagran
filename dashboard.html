@@ -98,18 +98,18 @@
                 <i data-lucide="droplets" class="mr-2"></i>
                 Jal Jagran
             </a>
-            <div class="hidden md:flex space-x-6">
+            <div class="hidden sm:flex space-x-6">
                 <a href="#jjm-status" class="nav-link">JJM Status</a>
                 <a href="#dashboard" class="nav-link">Dashboard</a>
                 <a href="#grievance" class="nav-link">Grievances</a>
                 <a href="#contact" class="nav-link">Contact</a>
             </div>
-            <button class="md-hidden text-white" id="mobile-menu-button">
+            <button class="sm:hidden text-white" id="mobile-menu-button">
                 <i data-lucide="menu"></i>
             </button>
         </nav>
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden md:hidden bg-blue-700">
+        <div id="mobile-menu" class="hidden sm:hidden bg-blue-700">
             <a href="#jjm-status" class="block text-white px-6 py-3">JJM Status</a>
             <a href="#dashboard" class="block text-white px-6 py-3">Dashboard</a>
             <a href="#grievance" class="block text-white px-6 py-3">Grievances</a>
@@ -122,19 +122,19 @@
 
         <!-- Hero Section -->
         <section class="hero-gradient text-white pt-24 pb-32">
-            <div class="container mx-auto px-6 text-center">
+            <div class="container mx-auto px-4 sm:px-6 text-center">
                 <div id="hgj-banner" class="inline-block har-ghar-jal-banner rounded-full px-6 py-2 text-sm font-semibold mb-6">
                     <span class="flex items-center"><i data-lucide="award" class="mr-2 h-5 w-5 text-yellow-300"></i><span id="hgj-village-name"></span> is a Har Ghar Jal Certified Village</span>
                 </div>
-                <h1 id="hero-title" class="text-4xl md:text-6xl font-bold mb-4 leading-tight">Ensuring Safe & Reliable Water for Dakshina Kannada</h1>
-                <p class="text-xl md:text-2xl mb-8 max-w-4xl mx-auto opacity-90">An AI-enhanced dashboard for Gram Panchayats to monitor water systems under the National Jal Jeevan Mission (JJM).</p>
+                <h1 id="hero-title" class="text-2xl sm:text-4xl md:text-6xl font-bold mb-4 leading-tight">Ensuring Safe & Reliable Water for Dakshina Kannada</h1>
+                <p class="text-base sm:text-xl md:text-2xl mb-8 max-w-4xl mx-auto opacity-90">An AI-enhanced dashboard for Gram Panchayats to monitor water systems under the National Jal Jeevan Mission (JJM).</p>
                 <a href="#dashboard" class="bg-white text-blue-600 font-bold py-3 px-8 rounded-full text-lg hover:bg-blue-100 transition-all duration-300 transform hover:scale-105 inline-block">View Live Dashboard</a>
             </div>
         </section>
 
         <!-- JJM Status Section -->
         <section id="jjm-status" class="py-20">
-            <div class="container mx-auto px-6">
+            <div class="container mx-auto px-4 sm:px-6">
                 <h2 class="section-title">Jal Jeevan Mission: Dakshina Kannada Status</h2>
                 <p class="section-subtitle">Select a village to view its progress towards providing Functional Household Tap Connections (FHTC) to every home.</p>
                 
@@ -155,7 +155,7 @@
                      </select>
                 </div>
 
-                <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-center">
                     <div>
                         <p id="households-count" class="text-4xl font-bold text-blue-600">0</p>
                         <p class="text-gray-600 font-medium">Total Households</p>
@@ -188,25 +188,27 @@
         
         <!-- Dashboard Preview Section -->
         <section id="dashboard" class="py-20 bg-gray-50">
-            <div class="container mx-auto px-6">
+            <div class="container mx-auto px-4 sm:px-6">
                 <h2 class="section-title">Live WQMIS & JJM Dashboard</h2>
                 <p class="section-subtitle">Live water quality and supply data for the selected village. Accessible on any device.</p>
                 <div class="bg-white p-4 sm:p-8 rounded-2xl shadow-2xl border border-gray-100 glow-effect">
         <!-- Household Water Stats Section -->
         <section id="house-stats" class="py-12 bg-white">
-          <div class="container mx-auto px-6">
+          <div class="container mx-auto px-4 sm:px-6">
             <h2 class="text-2xl font-bold mb-4">Household Water Stats - <span id="house-stats-village"></span></h2>
-            <table class="table-auto w-full border border-gray-200 text-sm">
-              <thead>
-                <tr class="bg-gray-100">
-                  <th class="px-4 py-2 border">House ID</th>
-                  <th class="px-4 py-2 border">Weekly Usage (Liters)</th>
-                  <th class="px-4 py-2 border">Requirement (Liters)</th>
-                  <th class="px-4 py-2 border">Status</th>
-                </tr>
-              </thead>
-              <tbody id="house-stats-body"></tbody>
-            </table>
+            <div class="overflow-x-auto">
+              <table class="table-auto w-full border border-gray-200 text-sm">
+                <thead>
+                  <tr class="bg-gray-100">
+                    <th class="px-4 py-2 border">House ID</th>
+                    <th class="px-4 py-2 border">Weekly Usage (Liters)</th>
+                    <th class="px-4 py-2 border">Requirement (Liters)</th>
+                    <th class="px-4 py-2 border">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="house-stats-body"></tbody>
+              </table>
+            </div>
           </div>
         </section>
                     <!-- Dashboard Header -->
@@ -224,13 +226,13 @@
                     </div>
 
                     <!-- Dashboard Grid -->
-                    <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div id="stats-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         <!-- Stat cards will be dynamically inserted here -->
                     </div>
 
 
                     <!-- Historical Data Charts -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mt-8">
                         <div class="bg-gray-50 p-6 rounded-xl">
                             <h4 class="text-lg font-semibold mb-4 text-gray-700">Weekly Water Supplied (in '000 Litres)</h4>
                             <canvas id="waterSuppliedChart"></canvas>
@@ -241,7 +243,7 @@
                         </div>
                     </div>
                      <!-- AI Sections -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mt-8">
                          <!-- AI Weekly Summary -->
                         <div class="bg-gray-50 p-6 rounded-xl">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
@@ -283,10 +285,10 @@
 
         <!-- Grievance Section -->
         <section id="grievance" class="py-20 bg-white">
-            <div class="container mx-auto px-6">
+            <div class="container mx-auto px-4 sm:px-6">
                 <h2 class="section-title">Community Grievance System</h2>
                 <p class="section-subtitle">Report issues related to water supply in your area and track their resolution.</p>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-12">
                     <!-- Grievance Form -->
                     <div class="bg-gray-50 p-8 rounded-2xl shadow-lg">
                         <h3 class="text-2xl font-bold text-gray-800 mb-6">Report a New Issue</h3>
@@ -327,7 +329,7 @@
 
          <!-- Contact Section -->
         <section id="contact" class="py-20 bg-gray-50">
-            <div class="container mx-auto px-6">
+            <div class="container mx-auto px-4 sm:px-6">
                 <h2 class="section-title">Take Control of Your Water Supply</h2>
                 <p class="section-subtitle">Contact us for a free demo and consultation for your Gram Panchayat.</p>
                 <div class="max-w-xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
@@ -357,7 +359,7 @@
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white">
-        <div class="container mx-auto px-6 py-10">
+        <div class="container mx-auto px-4 sm:px-6 py-10">
             <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500 text-sm">
                 <p>&copy; 2025 Jal Jagran. Data monitoring standards as per the Jal Jeevan Mission (JJM) guidelines.</p>
             </div>
@@ -428,16 +430,9 @@
                     { icon: 'wrench', color: 'blue', text: 'Routine maintenance on Pump UJ-P1.', time: 'Yesterday' }
                 ],
                 houses: [
-                  { id: "H001", usage: [120, 130, 115, 140, 150, 135, 125], requirement: 20 },
-                  { id: "H002", usage: [100, 110, 120, 105, 95, 115, 105], requirement: 18 },
-                  { id: "H003", usage: [90, 85, 100, 95, 105, 110, 98], requirement: 17 },
-                  { id: "H004", usage: [140, 150, 135, 145, 155, 160, 150], requirement: 22 },
-                  { id: "H005", usage: [70, 80, 75, 85, 90, 95, 78], requirement: 15 },
-                  { id: "H006", usage: [200, 190, 185, 210, 195, 205, 198], requirement: 25 },
-                  { id: "H007", usage: [130, 125, 140, 135, 128, 138, 132], requirement: 19 },
-                  { id: "H008", usage: [160, 165, 170, 155, 150, 175, 162], requirement: 21 },
-                  { id: "H009", usage: [85, 90, 92, 88, 95, 100, 91], requirement: 16 },
-                  { id: "H010", usage: [115, 118, 120, 110, 108, 122, 117], requirement: 18 }
+                    { id: "UJ-H1", usage: [120, 130, 115, 125, 118, 122, 128], requirement: 120 },
+                    { id: "UJ-H2", usage: [90, 100, 95, 92, 98, 101, 97], requirement: 110 },
+                    { id: "UJ-H3", usage: [140, 135, 138, 142, 136, 139, 141], requirement: 130 }
                 ]
             },
             "Sajipamooda": {
