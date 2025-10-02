@@ -90,6 +90,11 @@
     </style>
 </head>
 <body>
+    <script>
+        if (!localStorage.getItem('loggedInUser')) {
+            window.location.href = 'login.html';
+        }
+    </script>
 
     <!-- Header -->
     <header class="bg-blue-600 sticky top-0 z-50 shadow-md">
@@ -228,11 +233,24 @@
                     <!-- Dashboard Grid -->
                     <div id="stats-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         <!-- Stat cards will be dynamically inserted here -->
+                        <div class="stat-card">
+                            <div class="flex justify-center items-center text-green-600 mb-2"><i data-lucide="users" class="w-8 h-8"></i></div>
+                            <p class="text-sm font-medium text-gray-500">Water Equity</p>
+                            <p id="equity-percent" class="text-3xl font-bold text-gray-800">0%</p>
+                            <p class="text-xs text-gray-500">of households have sufficient water</p>
+                        </div>
+                        <div class="bg-yellow-50 p-6 rounded-xl col-span-1 sm:col-span-2 lg:col-span-4">
+                            <div class="flex items-center mb-2">
+                                <i data-lucide="lightbulb" class="w-6 h-6 text-yellow-600 mr-2"></i>
+                                <h4 class="text-lg font-semibold text-yellow-800">Jal Gyan - Water Saving Tip</h4>
+                            </div>
+                            <p id="educational-tip" class="text-sm text-gray-700"></p>
+                        </div>
                     </div>
 
 
                     <!-- Historical Data Charts -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mt-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
                         <div class="bg-gray-50 p-6 rounded-xl">
                             <h4 class="text-lg font-semibold mb-4 text-gray-700">Weekly Water Supplied (in '000 Litres)</h4>
                             <canvas id="waterSuppliedChart"></canvas>
@@ -241,7 +259,32 @@
                              <h4 class="text-lg font-semibold mb-4 text-gray-700">Recent Chlorine Levels (mg/L)</h4>
                              <canvas id="chlorineLevelsChart"></canvas>
                         </div>
+                        <div class="bg-gray-50 p-6 rounded-xl">
+                            <h4 class="text-lg font-semibold mb-4 text-gray-700">FHTC Coverage Growth</h4>
+                            <canvas id="fhtcCoverageChart"></canvas>
+                        </div>
                     </div>
+
+                    <!-- Water Sources Table -->
+                    <div class="mt-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-700">Water Sources</h4>
+                        <div class="overflow-x-auto bg-gray-50 p-6 rounded-xl">
+                            <table class="table-auto w-full border border-gray-200 text-sm">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-4 py-2 border">Source ID</th>
+                                        <th class="px-4 py-2 border">Type</th>
+                                        <th class="px-4 py-2 border">Capacity (L)</th>
+                                        <th class="px-4 py-2 border">Last Inspected</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sources-table-body">
+                                    <!-- Source data will be dynamically inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                      <!-- AI Sections -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mt-8">
                          <!-- AI Weekly Summary -->
@@ -279,6 +322,31 @@
                             </ul>
                         </div>
                     </div>
+
+                    <!-- Predictive Alerts & Grievance Assistant -->
+                    <div class="grid grid-cols-1 mt-6 gap-6">
+                        <div id="predictive-alerts" class="bg-white p-6 rounded-xl border">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-lg font-semibold text-gray-700">Predictive Alerts & Maintenance</h4>
+                                <span class="text-sm text-gray-500">Actionable pump/valve alerts, anomalies</span>
+                            </div>
+                            <div id="alerts-list" class="space-y-3 text-sm text-gray-700">
+                               <!-- Alerts injected here -->
+                               <p class="text-gray-500">No alerts generated yet.</p>
+                            </div>
+                        </div>
+
+                       <div id="grievance-assistant" class="bg-white p-6 rounded-xl border">
+                           <div class="flex items-center justify-between mb-4">
+                               <h4 class="text-lg font-semibold text-gray-700">Grievance Assistant</h4>
+                               <button id="analyze-grievances-btn" class="bg-indigo-600 text-white py-2 px-3 rounded-md text-sm hover:bg-indigo-700">Analyze & Recommend</button>
+                           </div>
+                           <div id="grievance-recommendations" class="text-sm text-gray-700">
+                               <p class="text-gray-500">Click "Analyze & Recommend" to rank grievances and suggest resource allocation.</p>
+                           </div>
+                       </div>
+                   </div>
+
                 </div>
             </div>
         </section>
@@ -393,6 +461,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // --- DATA ---
+        const educationalTips = [
+            "Check for and repair any leaking taps or pipes to save hundreds of liters of water each month.",
+            "Use a bucket to collect rainwater for watering plants or cleaning floors.",
+            "Ensure your household water storage tank is cleaned every 3 months to maintain water quality.",
+            "Ask your local health worker (ASHA) for chlorine tablets and instructions on how to use them correctly.",
+            "Don't let the tap run while washing dishes or brushing your teeth.",
+            "Report any public pipe leaks to the Gram Panchayat immediately."
+        ];
+
         function generateRandomPoints(center, count, spread = 0.01) {
             const points = [];
             for (let i = 0; i < count; i++) {
@@ -413,7 +490,8 @@
                 coordinates: [12.99, 75.33],
                 history: {
                     supply: [95, 98, 97, 99, 96, 98, 98.2],
-                    chlorine: [0.5, 0.4, 0.5, 0.6, 0.5, 0.5, 0.5]
+                    chlorine: [0.5, 0.4, 0.5, 0.6, 0.5, 0.5, 0.5],
+                    fhtc: [1000, 1100, 1150, 1200, 1250]
                 },
                 grievances: [
                     { id: 'GRV001', type: 'Low Water Pressure', location: 'Ward 2', status: 'Resolved', date: '2 days ago' },
@@ -430,9 +508,87 @@
                     { icon: 'wrench', color: 'blue', text: 'Routine maintenance on Pump UJ-P1.', time: 'Yesterday' }
                 ],
                 houses: [
-                    { id: "UJ-H1", usage: [120, 130, 115, 125, 118, 122, 128], requirement: 120 },
-                    { id: "UJ-H2", usage: [90, 100, 95, 92, 98, 101, 97], requirement: 110 },
-                    { id: "UJ-H3", usage: [140, 135, 138, 142, 136, 139, 141], requirement: 130 }
+                    { 
+                        id: "UJ-H001",
+                        usage: [120, 130, 115, 140, 150, 135, 125],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-09-20",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "UJ-H002",
+                        usage: [160, 165, 158, 162, 159, 161, 163],
+                        requirement: 150,
+                        leakDetected: true,
+                        lastMaintenance: "2025-09-15",
+                        chlorineLevelLastWeek: [0.4, 0.3, 0.4, 0.4, 0.3, 0.4, 0.4]
+                    },
+                    { 
+                        id: "UJ-H003",
+                        usage: [90, 100, 85, 95, 105, 110, 100],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-07-10",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.6, 0.5, 0.5, 0.5]
+                    },
+                    { 
+                        id: "UJ-H004",
+                        usage: [130, 140, 135, 145, 150, 155, 140],
+                        requirement: 140,
+                        leakDetected: true,
+                        lastMaintenance: "2025-06-20",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.7, 0.6, 0.6, 0.6]
+                    },
+                    { 
+                        id: "UJ-H005",
+                        usage: [110, 120, 115, 125, 135, 140, 120],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-05-15",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "UJ-H006",
+                        usage: [100, 90, 95, 85, 80, 75, 90],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-04-10",
+                        chlorineLevelLastWeek: [0.4, 0.3, 0.4, 0.4, 0.3, 0.4, 0.4]
+                    },
+                    { 
+                        id: "UJ-H007",
+                        usage: [140, 150, 145, 155, 160, 165, 150],
+                        requirement: 150,
+                        leakDetected: true,
+                        lastMaintenance: "2025-03-05",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.7, 0.6, 0.6, 0.6]
+                    },
+                    { 
+                        id: "UJ-H008",
+                        usage: [90, 85, 95, 100, 110, 105, 95],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-02-20",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "UJ-H009",
+                        usage: [130, 135, 128, 132, 129, 131, 133],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-01-15",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.7, 0.6, 0.6, 0.6]
+                    },
+                    { 
+                        id: "UJ-H010",
+                        usage: [120, 115, 118, 122, 119, 121, 123],
+                        requirement: 120,
+                        leakDetected: false,
+                        lastMaintenance: "2025-01-10",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    // Add more houses as needed
                 ]
             },
             "Sajipamooda": {
@@ -443,7 +599,8 @@
                 coordinates: [12.87, 74.96],
                 history: {
                     supply: [60, 61, 62, 59, 63, 62, 62.5],
-                    chlorine: [0.4, 0.4, 0.3, 0.3, 0.2, 0.3, 0.3]
+                    chlorine: [0.4, 0.4, 0.3, 0.3, 0.2, 0.3, 0.3],
+                    fhtc: [600, 650, 700, 750, 780]
                 },
                 grievances: [
                     { id: 'GRV003', type: 'Contaminated Water', location: 'Ward 1', status: 'Pending', date: '3 hours ago' }
@@ -456,9 +613,87 @@
                     { icon: 'flask-conical', color: 'blue', text: 'Water sample sent to Taluk lab.', time: 'Yesterday' }
                 ],
                 houses: [
-                    { id: "SJ-H1", usage: [80, 85, 78, 82, 79, 81, 83], requirement: 90 },
-                    { id: "SJ-H2", usage: [70, 75, 72, 68, 74, 76, 73], requirement: 80 },
-                    { id: "SJ-H3", usage: [100, 95, 98, 102, 97, 99, 101], requirement: 110 }
+                    { 
+                        id: "SJ-H001",
+                        usage: [80, 85, 78, 82, 79, 81, 83],
+                        requirement: 90,
+                        leakDetected: true,
+                        lastMaintenance: "2025-09-15",
+                        chlorineLevelLastWeek: [0.4, 0.3, 0.4, 0.3, 0.3, 0.4, 0.3]
+                    },
+                    { 
+                        id: "SJ-H002",
+                        usage: [70, 75, 72, 68, 74, 76, 73],
+                        requirement: 80,
+                        leakDetected: false,
+                        lastMaintenance: "2025-09-10",
+                        chlorineLevelLastWeek: [0.3, 0.2, 0.3, 0.3, 0.2, 0.3, 0.3]
+                    },
+                    { 
+                        id: "SJ-H003",
+                        usage: [100, 95, 98, 102, 97, 99, 101],
+                        requirement: 110,
+                        leakDetected: false,
+                        lastMaintenance: "2025-09-05",
+                        chlorineLevelLastWeek: [0.4, 0.3, 0.4, 0.4, 0.3, 0.4, 0.4]
+                    },
+                    { 
+                        id: "SJ-H004",
+                        usage: [90, 85, 95, 100, 110, 105, 95],
+                        requirement: 100,
+                        leakDetected: true,
+                        lastMaintenance: "2025-08-20",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5]
+                    },
+                    { 
+                        id: "SJ-H005",
+                        usage: [130, 135, 128, 132, 129, 131, 133],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-08-15",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6]
+                    },
+                    { 
+                        id: "SJ-H006",
+                        usage: [120, 115, 118, 122, 119, 121, 123],
+                        requirement: 120,
+                        leakDetected: false,
+                        lastMaintenance: "2025-08-10",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5]
+                    },
+                    { 
+                        id: "SJ-H007",
+                        usage: [140, 145, 138, 142, 139, 141, 143],
+                        requirement: 150,
+                        leakDetected: true,
+                        lastMaintenance: "2025-07-25",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6]
+                    },
+                    { 
+                        id: "SJ-H008",
+                        usage: [90, 85, 95, 100, 110, 105, 95],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-07-20",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5]
+                    },
+                    { 
+                        id: "SJ-H009",
+                        usage: [130, 135, 128, 132, 129, 131, 133],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-07-15",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6]
+                    },
+                    { 
+                        id: "SJ-H010",
+                        usage: [120, 115, 118, 122, 119, 121, 123],
+                        requirement: 120,
+                        leakDetected: false,
+                        lastMaintenance: "2025-07-10",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5]
+                    },
+                    // Add more houses as needed
                 ]
             },
             "Aryapu": {
@@ -469,7 +704,8 @@
                 coordinates: [12.78, 75.25],
                  history: {
                     supply: [72, 75, 74, 76, 75, 73, 75],
-                    chlorine: [0.5, 0.5, 0.4, 0.4, 0.5, 0.4, 0.4]
+                    chlorine: [0.5, 0.5, 0.4, 0.4, 0.5, 0.4, 0.4],
+                    fhtc: [800, 850, 900, 920, 945]
                 },
                 grievances: [],
                  sources: [
@@ -496,7 +732,8 @@
                 coordinates: [13.0, 75.3],
                 history: {
                     supply: [80, 81, 79, 82, 80, 81, 80.5],
-                    chlorine: [0.4, 0.3, 0.3, 0.4, 0.3, 0.4, 0.35]
+                    chlorine: [0.4, 0.3, 0.3, 0.4, 0.3, 0.4, 0.35],
+                    fhtc: [1200, 1300, 1350, 1400, 1450]
                 },
                 grievances: [{id: 'GRV004', type: 'No Water Supply', location: 'Zone B', status: 'In Progress', date: '6 hours ago'}],
                 sources: [ { id: 'BL-TW-01', type: 'Tube Well', capacity: 14000, inspected: '10 Oct 2025', coords: [13.0, 75.3] } ],
@@ -504,9 +741,87 @@
                 anganwadis: generateRandomPoints([13.0, 75.3], 6),
                 logs: [ { icon: 'alert-triangle', color: 'red', text: 'Low chlorine detected at BL-TW-01.', time: 'Today' } ],
                 houses: [
-                    { id: "BL-H1", usage: [110, 115, 108, 112, 109, 111, 113], requirement: 120 },
-                    { id: "BL-H2", usage: [100, 105, 102, 98, 104, 106, 103], requirement: 110 },
-                    { id: "BL-H3", usage: [130, 125, 128, 132, 129, 131, 133], requirement: 140 }
+                    { 
+                        id: "BL-H001",
+                        usage: [70, 75, 68, 72, 69, 71, 73],
+                        requirement: 80,
+                        leakDetected: true,
+                        lastMaintenance: "2025-09-10",
+                        chlorineLevelLastWeek: [0.3, 0.3, 0.4, 0.3, 0.3, 0.4, 0.3]
+                    },
+                    { 
+                        id: "BL-H002",
+                        usage: [100, 105, 102, 98, 104, 106, 103],
+                        requirement: 110,
+                        leakDetected: false,
+                        lastMaintenance: "2025-08-15",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6]
+                    },
+                    { 
+                        id: "BL-H003",
+                        usage: [130, 125, 128, 132, 129, 131, 133],
+                        requirement: 140,
+                        leakDetected: false,
+                        lastMaintenance: "2025-07-20",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5]
+                    },
+                    { 
+                        id: "BL-H004",
+                        usage: [90, 85, 95, 100, 110, 105, 95],
+                        requirement: 100,
+                        leakDetected: true,
+                        lastMaintenance: "2025-06-10",
+                        chlorineLevelLastWeek: [0.4, 0.3, 0.4, 0.4, 0.3, 0.4, 0.4]
+                    },
+                    { 
+                        id: "BL-H005",
+                        usage: [120, 115, 118, 122, 119, 121, 123],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-05-15",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5]
+                    },
+                    { 
+                        id: "BL-H006",
+                        usage: [140, 145, 138, 142, 139, 141, 143],
+                        requirement: 150,
+                        leakDetected: true,
+                        lastMaintenance: "2025-04-20",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6]
+                    },
+                    { 
+                        id: "BL-H007",
+                        usage: [90, 85, 95, 100, 110, 105, 95],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-03-15",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5]
+                    },
+                    { 
+                        id: "BL-H008",
+                        usage: [130, 135, 128, 132, 129, 131, 133],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-02-10",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6]
+                    },
+                    { 
+                        id: "BL-H009",
+                        usage: [120, 115, 118, 122, 119, 121, 123],
+                        requirement: 120,
+                        leakDetected: false,
+                        lastMaintenance: "2025-01-05",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.4, 0.5, 0.5]
+                    },
+                    { 
+                        id: "BL-H010",
+                        usage: [110, 105, 108, 112, 109, 111, 113],
+                        requirement: 130,
+                        leakDetected: true,
+                        lastMaintenance: "2025-01-01",
+                        chlorineLevelLastWeek: [0.4, 0.3, 0.4, 0.4, 0.3, 0.4, 0.4]
+                    },
+                    // Add more houses as needed
                 ]
             },
             "Bantwal": {
@@ -517,7 +832,8 @@
                 coordinates: [12.9, 75.04],
                 history: {
                     supply: [70, 71, 70, 72, 69, 70, 70.2],
-                    chlorine: [0.5, 0.5, 0.4, 0.5, 0.4, 0.5, 0.45]
+                    chlorine: [0.5, 0.5, 0.4, 0.5, 0.4, 0.5, 0.45],
+                    fhtc: [1100, 1150, 1200, 1250, 1300]
                 },
                 grievances: [],
                 sources: [ { id: 'BN-BW-01', type: 'Borewell', capacity: 12500, inspected: '15 Oct 2025', coords: [12.9, 75.04] } ],
@@ -525,9 +841,87 @@
                 anganwadis: generateRandomPoints([12.9, 75.04], 5),
                 logs: [ { icon: 'check-circle-2', color: 'green', text: 'Routine inspection completed.', time: 'Today' } ],
                 houses: [
-                    { id: "BT-H1", usage: [90, 95, 85, 88, 84, 92, 91], requirement: 100 },
-                    { id: "BT-H2", usage: [70, 75, 72, 68, 74, 76, 73], requirement: 80 },
-                    { id: "BT-H3", usage: [110, 105, 108, 112, 109, 111, 113], requirement: 120 }
+                    { 
+                        id: "BT-H001",
+                        usage: [90, 95, 85, 88, 84, 92, 91],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-09-20",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "BT-H002",
+                        usage: [160, 165, 158, 162, 159, 161, 163],
+                        requirement: 150,
+                        leakDetected: true,
+                        lastMaintenance: "2025-09-15",
+                        chlorineLevelLastWeek: [0.4, 0.3, 0.4, 0.4, 0.3, 0.4, 0.4]
+                    },
+                    { 
+                        id: "BT-H003",
+                        usage: [130, 140, 135, 145, 150, 155, 140],
+                        requirement: 140,
+                        leakDetected: false,
+                        lastMaintenance: "2025-08-10",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "BT-H004",
+                        usage: [90, 85, 95, 100, 110, 105, 95],
+                        requirement: 100,
+                        leakDetected: true,
+                        lastMaintenance: "2025-07-05",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.7, 0.6, 0.6, 0.6]
+                    },
+                    { 
+                        id: "BT-H005",
+                        usage: [110, 120, 115, 125, 135, 140, 120],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-06-01",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "BT-H006",
+                        usage: [100, 90, 95, 85, 80, 75, 90],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-04-10",
+                        chlorineLevelLastWeek: [0.4, 0.3, 0.4, 0.4, 0.3, 0.4, 0.4]
+                    },
+                    { 
+                        id: "BT-H007",
+                        usage: [140, 150, 145, 155, 160, 165, 150],
+                        requirement: 150,
+                        leakDetected: true,
+                        lastMaintenance: "2025-03-05",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.7, 0.6, 0.6, 0.6]
+                    },
+                    { 
+                        id: "BT-H008",
+                        usage: [90, 85, 95, 100, 110, 105, 95],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-02-20",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "BT-H009",
+                        usage: [130, 135, 128, 132, 129, 131, 133],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-01-15",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.7, 0.6, 0.6, 0.6]
+                    },
+                    { 
+                        id: "BT-H010",
+                        usage: [120, 115, 118, 122, 119, 121, 123],
+                        requirement: 120,
+                        leakDetected: false,
+                        lastMaintenance: "2025-01-10",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    // Add more houses as needed
                 ]
             },
             "Puttur": {
@@ -538,7 +932,8 @@
                 coordinates: [12.76, 75.21],
                  history: {
                     supply: [82, 84, 85, 83, 85, 86, 85],
-                    chlorine: [0.4, 0.4, 0.3, 0.4, 0.4, 0.3, 0.38]
+                    chlorine: [0.4, 0.4, 0.3, 0.4, 0.4, 0.3, 0.38],
+                    fhtc: [1100, 1200, 1250, 1300, 1350]
                 },
                 grievances: [{id: 'GRV005', type: 'Pipe Leakage', location: 'Ward 5', status: 'Resolved', date: '1 day ago'}],
                 sources: [ { id: 'PT-TW-01', type: 'Tube Well', capacity: 15000, inspected: '08 Oct 2025', coords: [12.76, 75.21] } ],
@@ -546,9 +941,87 @@
                 anganwadis: generateRandomPoints([12.76, 75.21], 6),
                 logs: [ { icon: 'wrench', color: 'yellow', text: 'Pipeline repair in progress in Ward 5.', time: 'Today' } ],
                 houses: [
-                    { id: "PT-H1", usage: [130, 135, 128, 132, 129, 131, 133], requirement: 140 },
-                    { id: "PT-H2", usage: [100, 105, 102, 98, 104, 106, 103], requirement: 110 },
-                    { id: "PT-H3", usage: [90, 95, 85, 88, 84, 92, 91], requirement: 100 }
+                    { 
+                        id: "PT-H001",
+                        usage: [130, 135, 128, 132, 129, 131, 133],
+                        requirement: 140,
+                        leakDetected: false,
+                        lastMaintenance: "2025-09-20",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "PT-H002",
+                        usage: [100, 105, 102, 98, 104, 106, 103],
+                        requirement: 110,
+                        leakDetected: false,
+                        lastMaintenance: "2025-08-15",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.6, 0.5, 0.6, 0.6]
+                    },
+                    { 
+                        id: "PT-H003",
+                        usage: [90, 95, 85, 88, 84, 92, 91],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-07-10",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "PT-H004",
+                        usage: [130, 140, 135, 145, 150, 155, 140],
+                        requirement: 140,
+                        leakDetected: true,
+                        lastMaintenance: "2025-06-05",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.7, 0.6, 0.6, 0.6]
+                    },
+                    { 
+                        id: "PT-H005",
+                        usage: [110, 120, 115, 125, 135, 140, 120],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-05-01",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "PT-H006",
+                        usage: [100, 90, 95, 85, 80, 75, 90],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-04-10",
+                        chlorineLevelLastWeek: [0.4, 0.3, 0.4, 0.4, 0.3, 0.4, 0.4]
+                    },
+                    { 
+                        id: "PT-H007",
+                        usage: [140, 150, 145, 155, 160, 165, 150],
+                        requirement: 150,
+                        leakDetected: true,
+                        lastMaintenance: "2025-03-05",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.7, 0.6, 0.6, 0.6]
+                    },
+                    { 
+                        id: "PT-H008",
+                        usage: [90, 85, 95, 100, 110, 105, 95],
+                        requirement: 100,
+                        leakDetected: false,
+                        lastMaintenance: "2025-02-20",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    { 
+                        id: "PT-H009",
+                        usage: [130, 135, 128, 132, 129, 131, 133],
+                        requirement: 130,
+                        leakDetected: false,
+                        lastMaintenance: "2025-01-15",
+                        chlorineLevelLastWeek: [0.6, 0.5, 0.6, 0.7, 0.6, 0.6, 0.6]
+                    },
+                    { 
+                        id: "PT-H010",
+                        usage: [120, 115, 118, 122, 119, 121, 123],
+                        requirement: 120,
+                        leakDetected: false,
+                        lastMaintenance: "2025-01-10",
+                        chlorineLevelLastWeek: [0.5, 0.4, 0.5, 0.5, 0.5, 0.6, 0.5]
+                    },
+                    // Add more houses as needed
                 ]
             },
             "Sullia": {
@@ -559,7 +1032,8 @@
                 coordinates: [12.56, 75.39],
                 history: {
                     supply: [60, 58, 59, 61, 60, 62, 60],
-                    chlorine: [0.3, 0.3, 0.4, 0.3, 0.3, 0.4, 0.32]
+                    chlorine: [0.3, 0.3, 0.4, 0.3, 0.3, 0.4, 0.32],
+                    fhtc: [700, 750, 800, 820, 850]
                 },
                 grievances: [],
                 sources: [ { id: 'SU-BW-01', type: 'Borewell', capacity: 10000, inspected: '12 Sep 2025', coords: [12.56, 75.39] } ],
@@ -580,7 +1054,8 @@
                 coordinates: [12.91, 74.85],
                 history: {
                     supply: [118, 119, 120, 121, 119, 120, 120],
-                    chlorine: [0.5, 0.5, 0.5, 0.6, 0.5, 0.5, 0.5]
+                    chlorine: [0.5, 0.5, 0.5, 0.6, 0.5, 0.5, 0.5],
+                    fhtc: [1800, 1850, 1900, 1950, 1980]
                 },
                 grievances: [],
                 sources: [ { id: 'MR-TW-01', type: 'Tube Well', capacity: 20000, inspected: '20 Oct 2025', coords: [12.91, 74.85] } ],
@@ -601,7 +1076,8 @@
                 coordinates: [13.1, 74.79],
                 history: {
                     supply: [65, 64, 66, 65, 64, 65, 65],
-                    chlorine: [0.4, 0.4, 0.5, 0.4, 0.5, 0.4, 0.42]
+                    chlorine: [0.4, 0.4, 0.5, 0.4, 0.5, 0.4, 0.42],
+                    fhtc: [900, 950, 1000, 1050, 1100]
                 },
                 grievances: [],
                 sources: [ { id: 'ML-BW-01', type: 'Borewell', capacity: 12000, inspected: '18 Oct 2025', coords: [13.1, 74.79] } ],
@@ -622,7 +1098,8 @@
                 coordinates: [12.98, 74.80],
                 history: {
                     supply: [98, 99, 100, 101, 99, 100, 100],
-                    chlorine: [0.5, 0.5, 0.4, 0.5, 0.5, 0.5, 0.48]
+                    chlorine: [0.5, 0.5, 0.4, 0.5, 0.5, 0.5, 0.48],
+                    fhtc: [1400, 1450, 1500, 1550, 1600]
                 },
                 grievances: [{id: 'GRV006', type: 'Low Water Pressure', location: 'Beach Road', status: 'Resolved', date: '3 days ago'}],
                 sources: [ { id: 'SK-TW-01', type: 'Tube Well', capacity: 18000, inspected: '22 Oct 2025', coords: [12.98, 74.80] } ],
@@ -679,7 +1156,7 @@
 
         
         // --- CHART INITIALIZATION ---
-        let supplyChart, chlorineChart;
+        let supplyChart, chlorineChart, fhtcCoverageChart;
         const chartDays = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Today'];
         
         function initCharts() {
@@ -702,6 +1179,29 @@
                 },
                 options: { responsive: true, scales: { y: { beginAtZero: false, suggestedMin: 0.2, suggestedMax: 0.8 } } }
             });
+            const fhtcCtx = document.getElementById('fhtcCoverageChart').getContext('2d');
+            fhtcCoverageChart = new Chart(fhtcCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Month 1', 'Month 2', 'Month 3', 'Month 4', 'Today'],
+                    datasets: [{
+                        label: 'FHTC Coverage',
+                        data: [],
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
         }
 
 
@@ -713,56 +1213,80 @@
             // Initialize household stats table
             document.getElementById('house-stats-village').textContent = villageName;
             const houseBody = document.getElementById('house-stats-body');
-            houseBody.innerHTML = ''; // Clear existing rows
+            houseBody.innerHTML = '';
+            let coverage;
+            let equityPercentage = 0;
 
-            // Update household stats
             if (data.houses) {
                 let totalUsageAll = 0;
                 let totalRequirementAll = 0;
+                let leakCount = 0;
+                let lowChlorineCount = 0;
+                let sufficientCount = 0;
 
                 data.houses.forEach(house => {
                     const totalUsage = house.usage.reduce((a, b) => a + b, 0);
                     const requirementWeekly = house.requirement * 7;
+                    const avgChlorine = house.chlorineLevelLastWeek?.reduce((a, b) => a + b, 0) / 7 || 0;
                     
                     totalUsageAll += totalUsage;
                     totalRequirementAll += requirementWeekly;
+                    if (house.leakDetected) leakCount++;
+                    if (avgChlorine < 0.4) lowChlorineCount++;
+                    if (totalUsage >= requirementWeekly) {
+                        sufficientCount++;
+                    }
 
                     const status = totalUsage >= requirementWeekly ? 
                         "<span class='text-green-600'>✅ Sufficient</span>" : 
                         "<span class='text-yellow-600'>⚠️ Deficit</span>";
 
+                    const warnings = [
+                        house.leakDetected ? "<span class='text-red-600'>🚰 Leak</span>" : "",
+                        avgChlorine < 0.4 ? "<span class='text-orange-600'>⚠️ Low Cl</span>" : ""
+                    ].filter(w => w).join(" ");
+
                     houseBody.innerHTML += `
                         <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-2 border">${house.id}</td>
-                            <td class="px-4 py-2 border text-right">${totalUsage.toLocaleString()}</td>
+                            <td class="px-4 py-2 border">
+                                ${house.id}
+                                <div class="text-xs text-gray-500">Last maintained: ${house.lastMaintenance}</div>
+                            </td>
+                            <td class="px-4 py-2 border text-right">
+                                ${totalUsage.toLocaleString()}
+                                <div class="text-xs text-gray-500">Avg. Cl: ${avgChlorine.toFixed(2)} mg/L</div>
+                            </td>
                             <td class="px-4 py-2 border text-right">${requirementWeekly.toLocaleString()}</td>
-                            <td class="px-4 py-2 border text-center">${status}</td>
+                            <td class="px-4 py-2 border text-center">
+                                ${status}
+                                ${warnings ? `<div class="text-xs mt-1">${warnings}</div>` : ''}
+                            </td>
                         </tr>
                     `;
                 });
 
-                // Add summary rows
+                // Update summary with more detailed insights
                 const avgUsage = Math.round(totalUsageAll / data.houses.length);
                 const avgRequirement = Math.round(totalRequirementAll / data.houses.length);
+                coverage = Math.round((totalUsageAll / totalRequirementAll) * 100);
+                equityPercentage = data.houses.length > 0 ? Math.round((sufficientCount / data.houses.length) * 100) : 0;
 
                 houseBody.innerHTML += `
                     <tr class="font-bold bg-gray-50">
                         <td class="px-4 py-2 border">TOTAL</td>
-                        <td class="px-4 py-2 border text-right">${totalUsageAll.toLocaleString()}</td>
+                        <td class="px-4 py-2 border text-right">
+                            ${totalUsageAll.toLocaleString()}
+                            <div class="text-xs text-red-500">${leakCount} leaks detected</div>
+                            <div class="text-xs text-orange-500">${lowChlorineCount} houses with low chlorine</div>
+                        </td>
                         <td class="px-4 py-2 border text-right">${totalRequirementAll.toLocaleString()}</td>
-                        <td class="px-4 py-2 border text-center">${totalUsageAll >= totalRequirementAll ? "✅" : "⚠️"}</td>
-                    </tr>
-                    <tr class="font-medium bg-blue-50">
-                        <td class="px-4 py-2 border">AVERAGE PER HOUSE</td>
-                        <td class="px-4 py-2 border text-right">${avgUsage.toLocaleString()}</td>
-                        <td class="px-4 py-2 border text-right">${avgRequirement.toLocaleString()}</td>
-                        <td class="px-4 py-2 border text-center">-</td>
+                        <td class="px-4 py-2 border text-center">${coverage}% of target</td>
                     </tr>
                 `;
             } else {
-                houseBody.innerHTML = '<tr><td colspan="4" class="px-4 py-2 text-center text-gray-500">No household data available</td></tr>';
+                coverage = data.households > 0 ? Math.round((data.fhtc / data.households) * 100) : 0;
             }
-
+            
             // Update UI elements...
             document.getElementById('hero-title').textContent = `Ensuring Safe & Reliable Water for Village ${villageName}`;
             document.getElementById('hgj-village-name').textContent = villageName;
@@ -787,7 +1311,20 @@
                 <div class="stat-card"><div class="flex justify-center items-center text-blue-600 mb-2"><i data-lucide="thermometer-snowflake" class="w-8 h-8"></i></div><p class="text-sm font-medium text-gray-500">pH Level</p><p class="text-3xl font-bold text-gray-800">${data.ph}</p></div>
                 <div class="stat-card"><div class="flex justify-center items-center text-blue-600 mb-2"><i data-lucide="eye" class="w-8 h-8"></i></div><p class="text-sm font-medium text-gray-500">Turbidity (NTU)</p><p class="text-3xl font-bold text-gray-800">${data.turbidity}</p></div>
                 <div class="stat-card ${data.alerts.count > 0 ? '!bg-red-50' : ''} col-span-2"><div class="flex justify-center items-center ${data.alerts.count > 0 ? 'text-red-600' : 'text-green-600'} mb-2"><i data-lucide="siren" class="w-8 h-8"></i></div><p class="text-sm font-medium text-gray-500">Operational Alerts</p><p class="text-xl font-bold ${data.alerts.count > 0 ? 'text-red-600' : 'text-green-600'}">${data.alerts.text}</p></div>
-                <div class="stat-card col-span-2"><div class="flex justify-center items-center text-purple-600 mb-2"><i data-lucide="shield-half" class="w-8 h-8"></i></div><p class="text-sm font-medium text-gray-500">Contamination Status</p><p class="text-base font-bold">${contaminationHtml}</p></div>`;
+                <div class="stat-card col-span-2"><div class="flex justify-center items-center text-purple-600 mb-2"><i data-lucide="shield-half" class="w-8 h-8"></i></div><p class="text-sm font-medium text-gray-500">Contamination Status</p><p class="text-base font-bold">${contaminationHtml}</p></div>
+                <div class="stat-card">
+                    <div class="flex justify-center items-center text-green-600 mb-2"><i data-lucide="users" class="w-8 h-8"></i></div>
+                    <p class="text-sm font-medium text-gray-500">Water Equity</p>
+                    <p id="equity-percent" class="text-3xl font-bold text-gray-800">${equityPercentage}%</p>
+                    <p class="text-xs text-gray-500">of households have sufficient water</p>
+                </div>
+                <div class="bg-yellow-50 p-6 rounded-xl col-span-1 sm:col-span-2 lg:col-span-3">
+                    <div class="flex items-center mb-2">
+                        <i data-lucide="lightbulb" class="w-6 h-6 text-yellow-600 mr-2"></i>
+                        <h4 class="text-lg font-semibold text-yellow-800">Jal Gyan - Water Saving Tip</h4>
+                    </div>
+                    <p id="educational-tip" class="text-sm text-gray-700"></p>
+                </div>`;
             
             document.getElementById('sources-table-body').innerHTML = data.sources.map(s => `<tr><td class="p-2 font-medium">${s.id}</td><td class="p-2">${s.type}</td><td class="p-2">${s.capacity.toLocaleString()}</td><td class="p-2">${s.inspected}</td></tr>`).join('');
             document.getElementById('activity-log').innerHTML = data.logs.map(log => `
@@ -798,6 +1335,8 @@
             supplyChart.update();
             chlorineChart.data.datasets[0].data = data.history.chlorine;
             chlorineChart.update();
+            fhtcCoverageChart.data.datasets[0].data = data.history.fhtc;
+            fhtcCoverageChart.update();
 
             const grievanceTracker = document.getElementById('grievance-tracker');
             if (data.grievances.length === 0) {
@@ -812,6 +1351,9 @@
                     </div>`;
                 }).join('');
             }
+
+            const randomTip = educationalTips[Math.floor(Math.random() * educationalTips.length)];
+            document.getElementById('educational-tip').textContent = randomTip;
 
             document.getElementById('summary-output').innerHTML = "Click the button to generate an AI-powered summary of the week's activities and data trends.";
             document.getElementById('forecast-output').innerHTML = "Click the button for an AI forecast of potential issues and preventive maintenance tips.";
@@ -894,7 +1436,166 @@
                 minutes++;
             }, 60000);
         }
+
+        // ------------------------------
+        // Predictive alerts & anomalies
+        // ------------------------------
+        function detectAnomalies(village) {
+            const anomalies = [];
+            if (!village) return anomalies;
+
+            // Household usage anomalies: detect houses whose weekly usage deviates >40% from median
+            const usages = (village.houses || []).map(h => h.usage.reduce((a,b)=>a+b,0));
+            if (usages.length) {
+                const sorted = [...usages].sort((a,b)=>a-b);
+                const mid = sorted[Math.floor(sorted.length/2)] || 0;
+                village.houses.forEach((h, idx) => {
+                    const total = h.usage.reduce((a,b)=>a+b,0);
+                    if (mid > 0 && Math.abs(total - mid) / mid > 0.4) {
+                        anomalies.push({ type: 'Usage Anomaly', severity: Math.abs(total-mid)/mid, message: `${h.id} usage ${total.toLocaleString()}L differs significantly from median ${mid.toLocaleString()}L` });
+                    }
+                });
+            }
+
+            // Contamination anomalies: sudden drop in chlorine or spike in turbidity / pH out-of-range
+            const chlorineSeries = village.history?.chlorine || [];
+            if (chlorineSeries.length >= 2) {
+                const last = chlorineSeries[chlorineSeries.length-1];
+                const prevAvg = chlorineSeries.slice(0, -1).reduce((a,b)=>a+b,0)/(chlorineSeries.length-1);
+                if (prevAvg > 0 && (prevAvg - last) / prevAvg > 0.25) {
+                    anomalies.push({ type: 'Chlorine Drop', severity: (prevAvg - last)/prevAvg, message: `Chlorine dropped from avg ${prevAvg.toFixed(2)} to ${last.toFixed(2)} mg/L` });
+                }
+            }
+            if ((village.turbidity || 0) > 3) {
+                anomalies.push({ type: 'Turbidity High', severity: village.turbidity, message: `Turbidity ${village.turbidity} NTU exceeds safe threshold` });
+            }
+            if ((village.ph || 7) < 6.8 || (village.ph || 7) > 8.5) {
+                anomalies.push({ type: 'pH Out of Range', severity: Math.abs((village.ph||7)-7), message: `pH ${village.ph} is outside normal range` });
+            }
+            return anomalies;
+        }
+
+        function generateMaintenanceAlerts(village) {
+            const alerts = [];
+            if (!village) return alerts;
+
+            // Simple heuristic: if weekly supply fluctuates more than 15% between min/max -> pump stress
+            const supply = village.history?.supply || [];
+            if (supply.length) {
+                const min = Math.min(...supply), max = Math.max(...supply);
+                if (min > 0 && (max - min) / min > 0.15) {
+                    alerts.push({ area: 'Pump System', severity: 'High', action: 'Inspect pumps and check electrical supply / suction conditions. Schedule pump load test within 48 hours.' });
+                }
+            }
+
+            // Check sources with inspection dates older than 180 days
+            const nowYear = new Date().getFullYear();
+            (village.sources || []).forEach(src => {
+                // attempt to parse inspection year (fallback)
+                const inspected = src.inspected || '';
+                const match = inspected.match(/\b(\d{4})\b/);
+                const inspectedYear = match ? parseInt(match[1],10) : null;
+                if (inspectedYear && (nowYear - inspectedYear) >= 1) {
+                    alerts.push({ area: `Source ${src.id}`, severity: 'Medium', action: `Source not inspected since ${inspected}. Recommend inspection and FTK test.` });
+                }
+            });
+
+            // If contamination alerts present in village.alerts, escalate
+            if (village.alerts?.count > 0) {
+                alerts.push({ area: 'Operational Alerts', severity: 'High', action: `Active alert: ${village.alerts.text}. Prioritize field sampling and consumer advisory.` });
+            }
+            return alerts;
+        }
+
+        function renderAlertsForVillage(vName) {
+            const container = document.getElementById('alerts-list');
+            const village = villageData[vName];
+            const anomalies = detectAnomalies(village);
+            const maintenance = generateMaintenanceAlerts(village);
+            const items = [...anomalies.map(a=>({kind:'anomaly', ...a})), ...maintenance.map(m=>({kind:'maintenance', ...m}))];
+            if (!items.length) {
+                container.innerHTML = `<p class="text-green-600">No immediate predictive alerts detected.</p>`;
+                return;
+            }
+            container.innerHTML = items.map(it => {
+                if (it.kind === 'anomaly') {
+                    const severityClass = it.severity >= 0.5 ? 'text-red-600' : 'text-yellow-600';
+                    return `<div class="p-3 border rounded-md ${severityClass}"><strong>${it.type}</strong>: ${it.message}</div>`;
+                } else {
+                    const sev = it.severity === 'High' ? 'text-red-600' : 'text-yellow-600';
+                    return `<div class="p-3 border rounded-md ${sev}"><strong>${it.area}</strong> (${it.severity}) — ${it.action}</div>`;
+                }
+            }).join('');
+        }
+
+        // Grievance assistant: rank and suggest resource allocation
+        function rankGrievances(village) {
+            const mapSeverity = t => {
+                if (/contaminat/i.test(t)) return 4;
+                if (/no water|no supply/i.test(t)) return 3;
+                if (/leak/i.test(t)) return 2;
+                if (/pressure/i.test(t)) return 1;
+                return 1;
+            };
+            const ranked = (village.grievances || []).map(g => ({...g, score: mapSeverity(g.type)}))
+                .sort((a,b)=>b.score - a.score);
+            return ranked;
+        }
+
+        async function analyzeGrievancesAndRecommend(villageName) {
+            const village = villageData[villageName];
+            const ranked = rankGrievances(village);
+            const container = document.getElementById('grievance-recommendations');
+            if (!ranked.length) {
+                container.innerHTML = `<p class="text-gray-500">No grievances to analyze.</p>`;
+                return;
+            }
+            // local heuristic recommendations
+            const recs = ranked.map((g, idx) => {
+                const assign = g.score >= 4 ? 'Immediate medical & water safety team + lab test' :
+                             g.score === 3 ? 'Dispatch 1 field crew and check source' :
+                             g.score === 2 ? 'Schedule pipe inspection & leak repair team' : 'Monitor and schedule routine check';
+                return `<div class="p-3 border rounded-md mb-2"><strong>${g.id} — ${g.type}</strong> (${g.status})<div class="text-xs text-gray-600 mt-1">Priority: ${g.score}. Suggestion: ${assign}.</div></div>`;
+            }).join('');
+
+            // Optionally request more detailed plan from Gemini for top grievance if API available
+            const top = ranked[0];
+            if (top && typeof callGeminiApi === 'function') {
+                // show local recs first
+                container.innerHTML = recs + `<div class="mt-2 text-sm text-gray-500">Requesting detailed action plan for top grievance...</div>`;
+                const prompt = `You are a field operations planner. A village has this top grievance: ${top.type} at ${top.location} (status: ${top.status}). Provide a concise 5-step field action plan and recommend team composition and estimated time.`;
+                const tempDiv = document.createElement('div');
+                tempDiv.className = 'mt-2';
+                container.appendChild(tempDiv);
+                // reuse callGeminiApi to populate tempDiv; provide a fake button element (disabled toggle handled)
+                const fakeBtn = { disabled: false };
+                try {
+                    await callGeminiApi(prompt, fakeBtn, tempDiv);
+                } catch (e) {
+                    // fallback: append note
+                    tempDiv.innerHTML = '<p class="text-red-500">Failed to fetch AI plan — using heuristic recommendations above.</p>';
+                }
+            } else {
+                container.innerHTML = recs;
+            }
+        }
+
+        // ensure alerts update on dashboard changes
+        const originalUpdate = updateDashboardAndMap;
+        updateDashboardAndMap = function(villageName) {
+            originalUpdate(villageName);
+            try { renderAlertsForVillage(villageName); } catch(e){ console.error(e); }
+        };
+
+        document.getElementById('analyze-grievances-btn').addEventListener('click', () => {
+            analyzeGrievancesAndRecommend(villageSelector.value);
+        });
+
+        // run initial alerts render after DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(()=> renderAlertsForVillage(villageSelector.value), 300);
+        });
     </script>
+
 </body>
 </html>
-
