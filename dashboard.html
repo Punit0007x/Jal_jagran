@@ -458,6 +458,7 @@
     <script>
         // --- DATA ---
         // Login redirect check removed
+        const educationalTips = [
             "Check for and repair any leaking taps or pipes to save hundreds of liters of water each month.",
             "Use a bucket to collect rainwater for watering plants or cleaning floors.",
             "Ensure your household water storage tank is cleaned every 3 months to maintain water quality.",
@@ -1371,4 +1372,15 @@
             const villageName = villageSelector.value;
             const data = villageData[villageName];
             const logsText = data.logs.map(log => log.text).join('. ');
-            const prompt = `You are a predictive maintenance AI for a rural Indian water supply system. Analyze the following data for village ${villageName} and forecast potential operational issues for the next 7-10 days. Suggest specific, low-cost preventive maintenance actions. Data: Last 7 days water supplied ('000 Litres): ${data.history.supply.join(', ')}. Last 7 days chlorine levels (mg/L): ${data.history.chlorine.join(', ')}. Current operational alerts: "${data.alerts.text}". Rece<truncated__content/>
+            const prompt = `You are a predictive maintenance AI for a rural Indian water supply system. Analyze the following data for village ${villageName} and forecast potential operational issues for the next 7-10 days. Suggest specific, low-cost preventive maintenance actions. Data: Last 7 days water supplied ('000 Litres): ${data.history.supply.join(', ')}. Last 7 days chlorine levels (mg/L): ${data.history.chlorine.join(', ')}. Current operational alerts: "${data.alerts.text}". Recent activity logs: ${logsText}.`;
+            callGeminiApi(prompt, this, document.getElementById('forecast-output'));
+        });
+
+        // Initialize charts and load default village when page loads
+        document.addEventListener("DOMContentLoaded", () => {
+            initCharts();
+            updateDashboardAndMap("Ujire"); // Default village data shown on load
+        });
+    </script>
+</body>
+</html>
