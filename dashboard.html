@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Jal Jagran - Modern Dashboard</title>
     
     <!-- Tailwind CSS -->
@@ -20,86 +20,104 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 
     <!-- Custom Styles -->
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(135deg, #f0f2f5 0%, #e0e7ff 100%);
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #f0f2f5 0%, #e0e7ff 100%); }
+.tab-content { display: none; animation: fadeIn 0.5s; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.sidebar-link.active { background: linear-gradient(90deg, #6366f1 0%, #06b6d4 100%); color: #fff; box-shadow: 0 4px 12px 0 rgba(6,182,212,0.15); }
+.sidebar-link.active i { color: #fff; }
+.sidebar-link { transition: all 0.2s ease-in-out; }
+.sidebar-link:hover { background: linear-gradient(90deg, #818cf8 0%, #38bdf8 100%); color: #fff; }
+/* Custom scrollbar for better aesthetics */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #818cf8 0%, #06b6d4 100%); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+/* Loader animation */
+.loader { border: 4px solid #f3f3f3; border-top: 4px solid #06b6d4; border-right: 4px solid #818cf8; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.show { transform: scale(1); }
+.pulse-live { animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+/* Stat card backgrounds */
+.stat-card-gradient-1 { background: linear-gradient(135deg, #818cf8 0%, #38bdf8 100%); }
+.stat-card-gradient-2 { background: linear-gradient(135deg, #34d399 0%, #06b6d4 100%); }
+.stat-card-gradient-3 { background: linear-gradient(135deg, #fbbf24 0%, #f472b6 100%); }
+.stat-card-gradient-4 { background: linear-gradient(135deg, #f87171 0%, #fbbf24 100%); }
+.custom-marker-green, .custom-marker-red, .custom-marker-yellow {
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    width: 20px !important;
+    height: 20px !important;
+}
+.custom-marker-green { background-color: #10B981; } /* green-500 */
+.custom-marker-red { background-color: #EF4444; }   /* red-500 */
+.custom-marker-yellow { background-color: #F59E0B; } /* amber-500 */
+.loader-sm { border: 2px solid #f3f3f3; border-top: 2px solid #fff; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; }
+
+    </style>
+    <style>
+    /* Mobile Optimization */
+    @media (max-width: 768px) {
+        main {
+            padding: 1rem; /* Keep padding for mobile */
+        }
+        /* The sidebar is now a proper mobile menu, not a top bar */
+        #sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            position: fixed; /* Ensure it's fixed for overlay effect */
+            height: 100vh;
+            z-index: 100;
+        }
+        #sidebar.show {
+            transform: translateX(0);
         }
         .tab-content {
-            display: none;
-            animation: fadeIn 0.5s;
+            padding-top: 1rem; /* Adjust top padding for mobile content */
         }
-        .tab-content.active {
+        table {
+            font-size: 0.9rem;
+            width: 100%;
+            overflow-x: auto; /* This is good for wide tables */
             display: block;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Removed .grid override; Tailwind classes are better */
+
+        /* Chart.js responsiveness is now handled in JS */
+        canvas {
+            max-width: 100%;
+            height: auto !important;
         }
-        .sidebar-link.active {
-            background: linear-gradient(90deg, #6366f1 0%, #06b6d4 100%);
-            color: #fff;
-            box-shadow: 0 4px 12px 0 rgba(6,182,212,0.15);
+        .rounded-2xl {
+            border-radius: 1rem;
         }
-        .sidebar-link.active i {
-            color: #fff;
+        .stat-card-gradient-1, .stat-card-gradient-2, .stat-card-gradient-3, .stat-card-gradient-4 {
+            padding: 1rem;
         }
-        .sidebar-link {
-            transition: all 0.2s ease-in-out;
+        input[type="text"], input[type="email"], select, textarea {
+            font-size: 1rem;
+            padding: 0.5rem 0.75rem;
         }
-        .sidebar-link:hover {
-            background: linear-gradient(90deg, #818cf8 0%, #38bdf8 100%);
-            color: #fff;
+        button, .sidebar-link {
+            min-height: 44px; /* Minimum touch target size */
+            padding: 0.5rem 1rem;
         }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #818cf8 0%, #06b6d4 100%);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #06b6d4;
-        }
-        /* Loader animation */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #06b6d4;
-            border-right: 4px solid #818cf8;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .show { transform: scale(1); }
-        .pulse-live {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
-        /* Stat card backgrounds */
-        .stat-card-gradient-1 { background: linear-gradient(135deg, #818cf8 0%, #38bdf8 100%); }
-        .stat-card-gradient-2 { background: linear-gradient(135deg, #34d399 0%, #06b6d4 100%); }
-        .stat-card-gradient-3 { background: linear-gradient(135deg, #fbbf24 0%, #f472b6 100%); }
-        .stat-card-gradient-4 { background: linear-gradient(135deg, #f87171 0%, #fbbf24 100%); }
+    }
     </style>
 </head>
-<body class="flex antialiased">
+<body class="flex flex-col md:flex-row antialiased">
 
     <!-- Sidebar Navigation -->
-    <aside class="w-64 bg-blue-900 text-blue-100 flex flex-col h-screen sticky top-0 shadow-lg">
+    <aside id="sidebar" class="w-64 bg-blue-900 text-blue-100 flex flex-col h-screen sticky top-0 shadow-lg -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-50">
         <div class="p-6 flex items-center space-x-3 border-b border-blue-800">
             <div class="bg-blue-500 p-2 rounded-lg">
                 <i data-lucide="droplets" class="w-6 h-6 text-white"></i>
@@ -122,6 +140,10 @@
             <a href="#ai-insights" data-tab="ai-insights" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg text-blue-200">
                 <i data-lucide="brain-circuit" class="w-5 h-5"></i>
                 <span class="font-semibold">AI Insights</span>
+            </a>
+            <a href="#map" data-tab="map" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg text-blue-200">
+                <i data-lucide="map" class="w-5 h-5"></i>
+                <span class="font-semibold">Map View</span>
             </a>
             <a href="#grievances" data-tab="grievances" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg text-blue-200">
                 <i data-lucide="alert-octagon" class="w-5 h-5"></i>
@@ -146,19 +168,23 @@
             </div>
         </div>
     </aside>
-
     <!-- Main Content -->
-    <main class="flex-1 p-8 overflow-y-auto">
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
         <!-- Header -->
         <header class="flex justify-between items-center mb-8">
-            <div>
-                <h1 id="header-title" class="text-3xl font-bold text-gray-800">Overview</h1>
-                <p class="text-gray-500 mt-1">Welcome back! Here's a summary of the water supply system.</p>
+            <div class="flex items-center space-x-4">
+                <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-600 hover:bg-gray-200 rounded-full">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <h1 id="header-title" class="text-3xl font-bold text-gray-800">Overview</h1>
+                    <p class="text-gray-500 mt-1">Welcome back! Here's a summary of the water supply system.</p>
+                </div>
             </div>
             <div class="flex items-center space-x-4">
                  <div class="relative">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"></i>
-                    <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
+                    <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 w-full md:w-64 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
                 </div>
                 <button class="relative p-2 text-gray-600 hover:bg-gray-200 rounded-full">
                     <i data-lucide="bell" class="w-6 h-6"></i>
@@ -166,7 +192,6 @@
                 </button>
             </div>
         </header>
-
         <!-- Tab Content Area -->
         <div id="tab-container">
             <!-- Overview Tab -->
@@ -231,7 +256,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8 items-start">
                     <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-md">
                         <h3 class="text-lg font-semibold text-gray-700 mb-4">Weekly Water Supplied (kL)</h3>
                         <canvas id="waterChart"></canvas>
@@ -240,20 +265,24 @@
                         <h3 class="text-lg font-semibold text-gray-700 mb-4">System Status</h3>
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-600">Main Pump Status</span>
-                                <span id="pump-status-overview" class="px-3 py-1 rounded-full text-sm font-semibold">Loading...</span>
+                                <span class="text-gray-600">Pump P-1</span>
+                                <span id="pump-p1-status-overview" class="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">Operational</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-600">Pump Running Hours</span>
-                                <span id="pump-hours-overview" class="px-3 py-1 rounded-full text-sm font-semibold">0 hrs</span>
+                                <span class="text-gray-600">Pump P-2</span>
+                                <span id="pump-p2-status-overview" class="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">Operational</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Valve V-1 (Zone A)</span>
+                                <span id="valve-v1-status-overview" class="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">Open</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Valve V-2 (Zone B)</span>
+                                <span id="valve-v2-status-overview" class="px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">Open</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-gray-600">Filter Unit A</span>
                                 <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">Operational</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-600">Chlorine Levels</span>
-                                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">Optimal</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-gray-600">Reservoir Level</span>
@@ -324,7 +353,7 @@
                 </div>
                 <!-- Charts Subtab -->
                 <div id="live-charts" class="live-subtab-content">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-md">
                             <h3 class="text-lg font-semibold text-gray-700 mb-4">Chlorine Levels (mg/L)</h3>
                             <canvas id="chlorineChart"></canvas>
@@ -336,7 +365,7 @@
                     </div>
                     <div class="mt-6 bg-white p-6 rounded-2xl shadow-md">
                       <h3 class="text-lg font-semibold text-gray-700 mb-4">Daily Routine Checks</h3>
-                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div class="space-y-4">
                           <div class="flex items-center justify-between">
                             <span class="text-gray-600">Pump Running Hours Today:</span>
@@ -368,26 +397,39 @@
                     </div>
                     <div class="mt-6 bg-white p-6 rounded-2xl shadow-md">
                       <h3 class="text-lg font-semibold text-gray-700 mb-4">Real-Time Sensor Simulation</h3>
-                      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div>
-                          <p class="font-medium text-gray-600 mb-1">Pump Status:</p>
-                          <p id="pump-status" class="font-bold text-green-600">ON</p>
-                          <p class="font-medium text-gray-600 mt-3 mb-1">Valve Position:</p>
-                          <p id="valve-status" class="font-bold text-green-600">OPEN</p>
-                          <p class="font-medium text-gray-600 mt-3 mb-1">Reservoir Level:</p>
-                          <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
-                            <div id="reservoir-level" class="bg-blue-600 h-2.5 rounded-full" style="width: 85%"></div>
-                          </div>
-                          <span class="font-semibold text-gray-700">85%</span>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <p class="font-medium text-gray-600 mb-1">Pump P-1 Status:</p>
+                                <p id="pump-p1-status" class="font-bold text-green-600">ON</p>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-600 mb-1">Pump P-2 Status:</p>
+                                <p id="pump-p2-status" class="font-bold text-green-600">ON</p>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-600 mb-1">Valve V-1 (Zone A):</p>
+                                <p id="valve-v1-status" class="font-bold text-green-600">OPEN</p>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-600 mb-1">Valve V-2 (Zone B):</p>
+                                <p id="valve-v2-status" class="font-bold text-green-600">OPEN</p>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-600 mb-1">Reservoir Level:</p>
+                                <div id="reservoir-level-display" class="font-bold text-blue-600">85%</div>
+                            </div>
                         </div>
-                        <div><canvas id="flowRateChart" height="200"></canvas></div>
-                        <div><canvas id="pressureChart" height="200"></canvas></div>
+                        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><canvas id="flowRateChart" height="200"></canvas></div>
+                            <div><canvas id="pressureChart" height="200"></canvas></div>
+                        </div>
                       </div>
                     </div>
                 </div>
                 <!-- Water Quality Subtab -->
                 <div id="water-quality" class="live-subtab-content hidden">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-md">
                             <h3 class="text-lg font-semibold text-gray-700 mb-4">Simulate Water Tests</h3>
                             <form id="water-quality-form" class="space-y-4 text-sm">
@@ -447,7 +489,7 @@
 
             <!-- AI Insights Tab -->
             <div id="ai-insights" class="tab-content"> 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Gemini AI Weekly Summary -->
                     <div class="bg-white p-6 rounded-2xl shadow-md border-l-4 border-blue-500 flex flex-col">
                         <div class="flex items-center space-x-3 mb-3">
@@ -468,8 +510,8 @@
                     <i data-lucide="cpu" class="w-6 h-6 text-orange-500"></i>
                     <h3 class="text-lg font-semibold text-gray-800">Predictive Maintenance Schedule</h3>
                 </div>
-                <!-- KPI CARDS for Predictive Maintenance Risk -->
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+                <!-- KPI CARDS for Predictive Maintenance Risk - Optimized for mobile -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-3">
                   <div class="bg-red-50 p-2 rounded text-center shadow">
                     <div class="text-xs text-gray-600">High Risk</div>
                     <div id="highRiskCount" class="text-2xl font-bold text-red-600">0</div>
@@ -510,12 +552,20 @@
                 </div>
             </div>
 
+            <!-- Map Tab -->
+            <div id="map" class="tab-content">
+                <div class="bg-white p-6 rounded-2xl shadow-md">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Geographical Overview of Water Assets</h3>
+                    <div id="map-container" class="w-full h-[600px] rounded-lg z-10"></div>
+                </div>
+            </div>
+
             <!-- Grievances Tab -->
             <div id="grievances" class="tab-content">
-                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                     <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-md">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Report an Issue</h3>
-                        <form class="space-y-4">
+                        <form id="grievance-form" class="space-y-4">
                             <div>
                                 <label class="text-sm font-medium text-gray-700">Issue Type</label>
                                 <select class="mt-1 w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -545,41 +595,7 @@
                     </div>
                     <div class="lg:col-span-3 bg-white p-6 rounded-2xl shadow-md">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Live Grievance Tracker</h3>
-                         <div class="space-y-4">
-                             <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg" data-grievance-id="1">
-                                 <div class="bg-yellow-100 text-yellow-600 p-2 rounded-full mt-1"><i data-lucide="wrench" class="w-5 h-5"></i></div>
-                                 <div>
-                                     <p class="font-semibold">Pipe leakage at Ward 2</p>
-                                     <p class="text-sm text-gray-500">Status: <span class="grievance-status px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">In Progress</span></p>
-                                     <select class="grievance-status-select mt-2 border rounded px-2 py-1 text-sm">
-                                         <option value="In Progress" selected>In Progress</option>
-                                         <option value="Resolved">Resolved</option>
-                                     </select>
-                                     <p class="text-xs text-gray-400">Reported 2 hours ago</p>
-                                 </div>
-                             </div>
-                             <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg" data-grievance-id="2">
-                                  <div class="bg-green-100 text-green-600 p-2 rounded-full mt-1"><i data-lucide="check-circle" class="w-5 h-5"></i></div>
-                                 <div>
-                                     <p class="font-semibold">Low pressure at Market Area</p>
-                                     <p class="text-sm text-gray-500">Status: <span class="grievance-status px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Resolved</span></p>
-                                     <select class="grievance-status-select mt-2 border rounded px-2 py-1 text-sm">
-                                         <option value="In Progress">In Progress</option>
-                                         <option value="Resolved" selected>Resolved</option>
-                                     </select>
-                                     <p class="text-xs text-gray-400">Resolved yesterday</p>
-                                 </div>
-                             </div>
-                              <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg" data-grievance-id="3">
-                                  <div class="bg-red-100 text-red-600 p-2 rounded-full mt-1"><i data-lucide="shield-alert" class="w-5 h-5"></i></div>
-                                 <div>
-                                     <p class="font-semibold">Water Quality Concern in Sector 5</p>
-                                     <p class="text-sm text-gray-500">Status: <span class="grievance-status px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">New</span></p>
-                                     <!-- No status select for New status -->
-                                     <p class="text-xs text-gray-400">Reported 15 mins ago</p>
-                                 </div>
-                             </div>
-                         </div>
+                         <div id="grievance-tracker" class="space-y-4"></div>
                     </div>
                 </div>
             </div>
@@ -587,24 +603,23 @@
             <!-- Logs Tab -->
             <div id="logs" class="tab-content">
                 <div class="bg-white p-6 rounded-2xl shadow-md">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Recent System Logs</h3>
-                    <ul class="space-y-3">
-                       <li class="flex items-center space-x-3 text-sm p-3 bg-gray-50 rounded-lg">
-                          <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i>
-                          <span class="text-gray-500">10/03/2025 09:30 AM</span>
-                          <span class="font-medium text-gray-800">FTK Test Passed at School Point</span>
-                       </li>
-                       <li class="flex items-center space-x-3 text-sm p-3 bg-gray-50 rounded-lg">
-                          <i data-lucide="sliders-horizontal" class="w-5 h-5 text-blue-500"></i>
-                           <span class="text-gray-500">10/03/2025 08:00 AM</span>
-                          <span class="font-medium text-gray-800">Pump Maintenance Scheduled for UJ-P1</span>
-                       </li>
-                       <li class="flex items-center space-x-3 text-sm p-3 bg-gray-50 rounded-lg">
-                          <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-500"></i>
-                           <span class="text-gray-500">09/03/2025 11:45 PM</span>
-                          <span class="font-medium text-gray-800">Pressure drop detected in Zone B pipeline.</span>
-                       </li>
+                    <div class="flex flex-col md:flex-row justify-between md:items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">Recent System Logs</h3>
+                        <button id="analyze-logs-btn" class="mt-2 md:mt-0 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2 disabled:bg-indigo-300">
+                            <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+                            <span>Analyze Logs for Patterns</span>
+                        </button>
+                    </div>
+                    <ul id="logs-list" class="space-y-3 mb-6">
+                        <!-- Log items will be dynamically inserted here -->
                     </ul>
+                    <!-- AI Log Analysis Output -->
+                    <div id="log-analysis-section" class="mt-6 border-t pt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center"><i data-lucide="search" class="w-5 h-5 mr-2 text-indigo-500"></i>AI Log Analysis</h3>
+                        <div id="log-analysis-output" class="bg-indigo-50 p-4 rounded-lg text-gray-700 min-h-[150px] whitespace-pre-wrap flex items-center justify-center">
+                            Click the "Analyze Logs" button to identify recurring issues and patterns from the system logs.
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -613,41 +628,53 @@
                 <div class="bg-white p-8 rounded-2xl shadow-md max-w-2xl mx-auto">
                     <h3 class="text-2xl font-bold text-gray-800 mb-2 text-center">Get in Touch</h3>
                     <p class="text-center text-gray-500 mb-6">Have a question or need support? Fill out the form below.</p>
-                    <form class="space-y-5">
+                    <form id="contact-form" class="space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <label class="text-sm font-medium text-gray-700">Your Name</label>
-                                <input type="text" class="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="John Doe">
+                                <input type="text" id="contact-name" class="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="John Doe" required>
                             </div>
                             <div>
                                 <label class="text-sm font-medium text-gray-700">Email Address</label>
-                                <input type="email" class="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="you@example.com">
+                                <input type="email" id="contact-email" class="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="you@example.com" required>
                             </div>
                         </div>
                         <div>
                             <label class="text-sm font-medium text-gray-700">Subject</label>
-                            <input type="text" class="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g., Technical Support">
+                            <input type="text" id="contact-subject" class="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g., Technical Support" required>
                         </div>
                         <div>
                            <label class="text-sm font-medium text-gray-700">Message</label>
-                           <textarea class="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" rows="5" placeholder="Your message here..."></textarea>
+                           <textarea id="contact-message" class="mt-1 w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" rows="5" placeholder="Your message here..." required></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition shadow-md">Send Message</button>
+                        <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition shadow-md flex items-center justify-center disabled:bg-blue-400 disabled:cursor-not-allowed">
+                            <span class="button-text">Send Message</span>
+                            <span class="button-loader hidden ml-2"><div class="loader-sm"></div></span>
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
     </main>
-
     <script>
         window.closeAIGrievanceModal = function() {
-            const modal = document.getElementById('ai-grievance-modal');
+            const modal = document.getElementById('ai-grievance-modal'); // This is the correct modal ID
             modal.classList.add('hidden');
             modal.classList.remove('show');
         }
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize Lucide Icons
             lucide.createIcons();
+
+            // Mobile menu toggle
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            mobileMenuBtn?.addEventListener('click', () => {
+                if (sidebar) {
+                    sidebar.classList.toggle('show');
+                    sidebar.classList.toggle('-translate-x-full');
+                }
+            });
 
             // Tab switching logic
             const sidebarLinks = document.querySelectorAll('.sidebar-link');
@@ -656,7 +683,7 @@
 
             // --- Chart Section ---
             // Chart instances
-            let waterChartInstance, chlorineChartInstance, fhtcChartInstance, smartMeterInterval, waterQualityTrendChart, riskTrendsChart;
+            let waterChartInstance, chlorineChartInstance, fhtcChartInstance, smartMeterInterval, waterQualityTrendChart, riskTrendsChart, mapInstance;
 
             // Chart global configuration
             const chartFont = "'Plus Jakarta Sans', sans-serif";
@@ -719,8 +746,8 @@
                         }]
                     },
                     options: {
-                        responsive: false,
-                        maintainAspectRatio: false,
+                        responsive: true,
+                        maintainAspectRatio: true,
                         scales: {
                             y: { beginAtZero: true, grid: { drawBorder: false } },
                             x: { grid: { display: false } }
@@ -752,10 +779,10 @@
                             pointRadius: 5
                         }]
                     },
-                    options: { 
-                        responsive: false, 
-                        maintainAspectRatio: false, 
-                        scales: { y: { grid: { drawBorder: false } }, x: { grid: { display: false } } } 
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: { y: { grid: { drawBorder: false } }, x: { grid: { display: false } } }
                     }
                 });
             }
@@ -784,8 +811,8 @@
                         }]
                     },
                     options: {
-                        responsive: false,
-                        maintainAspectRatio: false,
+                        responsive: true,
+                        maintainAspectRatio: true,
                         scales: { y: { grid: { drawBorder: false } }, x: { grid: { display: false } } }
                     }
                 });
@@ -817,11 +844,66 @@
                         }]
                     },
                     options: {
-                        responsive: false,
-                        maintainAspectRatio: false,
+                        responsive: true,
+                        maintainAspectRatio: true,
                         scales: { y: { beginAtZero: true, grid: { drawBorder: false } }, x: { grid: { display: false } } }
                     }
                 });
+            }
+
+            function initMap() {
+                if (mapInstance) {
+                    mapInstance.remove();
+                    mapInstance = null;
+                }
+                const mapContainer = document.getElementById('map-container');
+                if (!mapContainer || mapContainer._leaflet_id) return;
+
+                // Set initial view to the center of the first village
+                const firstVillageKey = Object.keys(villageData)[0];
+                const initialCoords = villageData[firstVillageKey].coordinates || [12.91, 74.85];
+
+                mapInstance = L.map('map-container').setView(initialCoords, 10);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(mapInstance);
+
+                // Add markers for all villages
+                for (const villageName in villageData) {
+                    const village = villageData[villageName];
+                    if (village.coordinates) {
+                        let iconColorClass = 'green'; // default
+                        const statusText = village.pumpStatus || 'Operational';
+
+                        if (statusText.toLowerCase().includes('maintenance')) {
+                            iconColorClass = 'red';
+                        } else if (statusText.toLowerCase().includes('partial')) {
+                            iconColorClass = 'yellow';
+                        }
+
+                        const customIcon = L.divIcon({
+                            className: `custom-marker-${iconColorClass}`,
+                            iconSize: [20, 20]
+                        });
+
+                        const marker = L.marker(village.coordinates, { icon: customIcon }).addTo(mapInstance);
+                        marker.bindPopup(`<b>${villageName}</b><br>Status: ${statusText}<br><small>Click to view dashboard</small>`);
+
+                        marker.on('click', () => {
+                            // Find the parent panchayat to update both dropdowns
+                            const panchayatName = Object.keys(panchayatVillages).find(p => panchayatVillages[p].includes(villageName));
+                            if (panchayatName) {
+                                panchayatSelector.value = panchayatName;
+                                populateVillages(panchayatName); // Repopulate villages for the selected panchayat
+                            }
+                            villageSelector.value = villageName;
+                            updateDashboardForVillage(villageName);
+                            switchTab('overview'); // Switch to overview tab to see the changes
+                            showToast(`Switched to ${villageName} dashboard.`, 'info');
+                        });
+                    }
+                }
             }
             // --- Real-Time Sensor Integration (Demo for MVP) ---
             let sensorCharts = {};
@@ -870,27 +952,44 @@
             }
 
             function updateSensorData() {
-                const pumpStatus = document.getElementById('pump-status');
-                const valveStatusEl = document.getElementById('valve-status');
-                const reservoirLevel = document.getElementById('reservoir-level');
+                const pump1StatusEl = document.getElementById('pump-p1-status');
+                const pump2StatusEl = document.getElementById('pump-p2-status');
+                const valve1StatusEl = document.getElementById('valve-v1-status');
+                const valve2StatusEl = document.getElementById('valve-v2-status');
+                const reservoirLevelDisplay = document.getElementById('reservoir-level-display');
 
-                if (pumpStatus) pumpStatus.textContent = Math.random() > 0.2 ? "ON" : "OFF";
-                if (valveStatusEl) valveStatusEl.textContent = Math.random() > 0.3 ? "OPEN" : "CLOSED";
-                if (reservoirLevel) {
-                    const level = Math.floor(60 + Math.random() * 40);
-                    reservoirLevel.style.width = level + "%";
-                    reservoirLevel.nextElementSibling.textContent = level + "%";
-                }
+                const pump1Status = Math.random() > 0.2 ? "ON" : "OFF";
+                const pump2Status = Math.random() > 0.15 ? "ON" : "OFF";
+                const valve1Status = Math.random() > 0.3 ? "OPEN" : "CLOSED";
+                const valve2Status = Math.random() > 0.25 ? "OPEN" : "CLOSED";
+                const reservoirLvl = Math.floor(60 + Math.random() * 40);
+
+                if (pump1StatusEl) { pump1StatusEl.textContent = pump1Status; pump1StatusEl.className = `font-bold ${pump1Status === 'ON' ? 'text-green-600' : 'text-red-600'}`; }
+                if (pump2StatusEl) { pump2StatusEl.textContent = pump2Status; pump2StatusEl.className = `font-bold ${pump2Status === 'ON' ? 'text-green-600' : 'text-red-600'}`; }
+                if (valve1StatusEl) { valve1StatusEl.textContent = valve1Status; valve1StatusEl.className = `font-bold ${valve1Status === 'OPEN' ? 'text-green-600' : 'text-yellow-600'}`; }
+                if (valve2StatusEl) { valve2StatusEl.textContent = valve2Status; valve2StatusEl.className = `font-bold ${valve2Status === 'OPEN' ? 'text-green-600' : 'text-yellow-600'}`; }
+                if (reservoirLevelDisplay) { reservoirLevelDisplay.textContent = `${reservoirLvl}%`; }
+
+                // Update overview tab as well
+                const p1Overview = document.getElementById('pump-p1-status-overview');
+                const p2Overview = document.getElementById('pump-p2-status-overview');
+                const v1Overview = document.getElementById('valve-v1-status-overview');
+                const v2Overview = document.getElementById('valve-v2-status-overview');
+
+                if(p1Overview) { p1Overview.textContent = pump1Status === 'ON' ? 'Operational' : 'Offline'; p1Overview.className = `px-3 py-1 rounded-full text-sm font-semibold ${pump1Status === 'ON' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`; }
+                if(p2Overview) { p2Overview.textContent = pump2Status === 'ON' ? 'Operational' : 'Offline'; p2Overview.className = `px-3 py-1 rounded-full text-sm font-semibold ${pump2Status === 'ON' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`; }
+                if(v1Overview) { v1Overview.textContent = valve1Status; v1Overview.className = `px-3 py-1 rounded-full text-sm font-semibold ${valve1Status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`; }
+                if(v2Overview) { v2Overview.textContent = valve2Status; v2Overview.className = `px-3 py-1 rounded-full text-sm font-semibold ${valve2Status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`; }
 
                 // Update daily pump hours (simulate increment)
-                if (pumpStatus && pumpStatus.textContent === "ON") {
+                if (pump1Status === "ON") {
                     dailyPumpHours += 0.1; // increment by 6 minutes per update (every 3s)
                 }
 
                 // Leak detection logic
                 let flowRate = Math.random() * 100 + 300;
                 let pressure = Math.random() * 2 + 4;
-                if (flowRate < 250 || pressure < 3.5) {
+                if (flowRate < 250 || pressure < 3.5 || (pump1Status === 'ON' && pump2Status === 'ON' && flowRate < 400)) {
                     leakDetectionStatus = "Leak Detected!";
                 } else {
                     leakDetectionStatus = "No Leaks Detected";
@@ -898,7 +997,7 @@
 
                 // Update display
                 document.getElementById('daily-pump-hours').textContent = dailyPumpHours.toFixed(1) + " hrs";
-                document.getElementById('valve-check-status').textContent = valveStatusEl ? valveStatusEl.textContent : "OPEN";
+                document.getElementById('valve-check-status').textContent = valve1Status;
                 document.getElementById('leak-detection-status').textContent = leakDetectionStatus;
                 document.getElementById('leak-detection-status').className = leakDetectionStatus.includes("Detected") ? "font-bold text-red-600" : "font-bold text-green-600";
                 document.getElementById('last-quality-test').textContent = lastQualityTest;
@@ -933,8 +1032,6 @@
 
             setInterval(updateSensorData, 3000);
             // --- End Chart Section ---
-
-
             // Fix: Ensure at least one tab is visible on load
             function showDefaultTab() {
                 // Remove 'active' from all tabs
@@ -971,16 +1068,25 @@
                     case 'ai-insights':
                         initRiskTrendsChart();
                         break;
+                    case 'map':
+                        initMap();
+                        break;
                 }
             }
 
-            sidebarLinks.forEach(link => {
+            document.querySelectorAll('.sidebar-link').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const tabId = this.dataset.tab;
-                    // Update URL hash for better navigation history
                     window.location.hash = tabId;
                     switchTab(tabId);
+
+                    // Auto-close sidebar on mobile after tab selection
+                    const sidebar = document.getElementById('sidebar');
+                    if (window.innerWidth < 768 && sidebar && sidebar.classList.contains('show')) {
+                        sidebar.classList.remove('show');
+                        sidebar.classList.add('-translate-x-full');
+                    }
                 });
             });
 
@@ -1022,6 +1128,7 @@
             let villageData = {
                 "Ujire": {
                     supply: [95, 98, 97, 99, 96, 98, 100],
+                    coordinates: [12.99, 75.33],
                     chlorine: [0.5, 0.4, 0.6, 0.5, 0.4, 0.5, 0.5],
                     fhtc: [1000, 1100, 1150, 1200, 1250],
                     grievances: [
@@ -1036,6 +1143,7 @@
                 },
                 "Sajipamooda": {
                     supply: [60, 61, 62, 59, 63, 62, 62.5],
+                    coordinates: [12.87, 74.96],
                     chlorine: [0.4, 0.4, 0.3, 0.3, 0.2, 0.3, 0.3],
                     fhtc: [600, 650, 700, 750, 780],
                     pumpRunningHours: 600,
@@ -1050,6 +1158,7 @@
                 },
                 "Aryapu": {
                     supply: [72, 75, 74, 76, 75, 73, 75],
+                    coordinates: [12.78, 75.25],
                     chlorine: [0.5, 0.5, 0.4, 0.4, 0.5, 0.4, 0.4],
                     fhtc: [800, 850, 900, 920, 945],
                     pumpRunningHours: 450,
@@ -1062,6 +1171,7 @@
                 },
                 "Belthangady": {
                     supply: [80, 81, 79, 82, 80, 81, 80.5],
+                    coordinates: [13.0, 75.3],
                     chlorine: [0.4, 0.3, 0.3, 0.4, 0.3, 0.4, 0.35],
                     fhtc: [1200, 1300, 1350, 1400, 1450],
                     pumpRunningHours: 820,
@@ -1075,6 +1185,7 @@
                 },
                 "Bantwal": {
                     supply: [70, 71, 70, 72, 69, 70, 70.2],
+                    coordinates: [12.9, 75.04],
                     chlorine: [0.5, 0.5, 0.4, 0.5, 0.4, 0.5, 0.45],
                     fhtc: [1100, 1150, 1200, 1250, 1300],
                     pumpRunningHours: 300,
@@ -1086,6 +1197,7 @@
                 },
                 "Puttur": {
                     supply: [82, 84, 85, 83, 85, 86, 85],
+                    coordinates: [12.76, 75.21],
                     chlorine: [0.4, 0.4, 0.3, 0.4, 0.4, 0.3, 0.38],
                     fhtc: [1100, 1200, 1250, 1300, 1350],
                     pumpRunningHours: 550,
@@ -1099,6 +1211,7 @@
                 },
                 "Sullia": {
                     supply: [60, 58, 59, 61, 60, 62, 60],
+                    coordinates: [12.56, 75.39],
                     chlorine: [0.3, 0.3, 0.4, 0.3, 0.3, 0.4, 0.32],
                     fhtc: [700, 750, 800, 820, 850],
                     pumpRunningHours: 710,
@@ -1110,6 +1223,7 @@
                 },
                 "Mangaluru Rural": {
                     supply: [118, 119, 120, 121, 119, 120, 120],
+                    coordinates: [12.91, 74.85],
                     chlorine: [0.5, 0.5, 0.5, 0.6, 0.5, 0.5, 0.5],
                     fhtc: [1800, 1850, 1900, 1950, 1980],
                     pumpRunningHours: 250,
@@ -1121,6 +1235,7 @@
                 },
                 "Mulki": {
                     supply: [65, 64, 66, 65, 64, 65, 65],
+                    coordinates: [13.1, 74.79],
                     chlorine: [0.4, 0.4, 0.5, 0.4, 0.5, 0.4, 0.42],
                     fhtc: [900, 950, 1000, 1050, 1100],
                     pumpRunningHours: 150,
@@ -1132,6 +1247,7 @@
                 },
                 "Surathkal": {
                     supply: [98, 99, 100, 101, 99, 100, 100],
+                    coordinates: [12.98, 74.80],
                     chlorine: [0.5, 0.5, 0.4, 0.5, 0.5, 0.5, 0.48],
                     fhtc: [1400, 1450, 1500, 1550, 1600],
                     pumpRunningHours: 400,
@@ -1145,6 +1261,7 @@
                 },
                 "Kaniyoor": {
                     supply: [70, 72, 71, 73, 74, 72, 71],
+                    coordinates: [12.82, 75.40], // Approx
                     chlorine: [0.4, 0.4, 0.5, 0.4, 0.5, 0.4, 0.4],
                     fhtc: [800, 850, 900, 950, 1000],
                     pumpRunningHours: 900,
@@ -1158,6 +1275,7 @@
                 },
                 "Laila": {
                     supply: [60, 62, 61, 63, 64, 62, 61],
+                    coordinates: [13.01, 75.35], // Approx
                     chlorine: [0.3, 0.3, 0.4, 0.3, 0.4, 0.3, 0.3],
                     fhtc: [700, 750, 800, 850, 900],
                     pumpRunningHours: 350,
@@ -1169,6 +1287,7 @@
                 },
                 "Panemangalore": {
                     supply: [80, 81, 82, 83, 82, 81, 80],
+                    coordinates: [12.88, 75.01], // Approx
                     chlorine: [0.5, 0.5, 0.4, 0.5, 0.4, 0.5, 0.5],
                     fhtc: [1200, 1250, 1300, 1350, 1400],
                     pumpRunningHours: 680,
@@ -1182,6 +1301,7 @@
                 },
                 "Kalladka": {
                     supply: [75, 76, 77, 78, 77, 76, 75],
+                    coordinates: [12.85, 75.01], // Approx
                     chlorine: [0.4, 0.4, 0.5, 0.4, 0.5, 0.4, 0.4],
                     fhtc: [1000, 1050, 1100, 1150, 1200],
                     pumpRunningHours: 200,
@@ -1193,6 +1313,7 @@
                 },
                 "Nettanige Mudnoor": {
                     supply: [65, 66, 67, 68, 67, 66, 65],
+                    coordinates: [12.68, 75.28], // Approx
                     chlorine: [0.3, 0.3, 0.4, 0.3, 0.4, 0.3, 0.3],
                     fhtc: [900, 950, 1000, 1050, 1100],
                     pumpRunningHours: 730,
@@ -1206,6 +1327,7 @@
                 },
                 "Ainekidu": {
                     supply: [60, 61, 62, 63, 62, 61, 60],
+                    coordinates: [12.70, 75.30], // Approx
                     chlorine: [0.5, 0.5, 0.4, 0.5, 0.4, 0.5, 0.5],
                     fhtc: [800, 850, 900, 950, 1000],
                     pumpRunningHours: 100,
@@ -1217,6 +1339,7 @@
                 },
                 "Aletty": {
                     supply: [55, 56, 57, 58, 57, 56, 55],
+                    coordinates: [12.58, 75.45], // Approx
                     chlorine: [0.4, 0.4, 0.5, 0.4, 0.5, 0.4, 0.4],
                     fhtc: [700, 750, 800, 850, 900],
                     pumpRunningHours: 500,
@@ -1230,6 +1353,7 @@
                 },
                 "Aranthodu": {
                     supply: [50, 51, 52, 53, 52, 51, 50],
+                    coordinates: [12.54, 75.43], // Approx
                     chlorine: [0.3, 0.3, 0.4, 0.3, 0.4, 0.3, 0.3],
                     fhtc: [600, 650, 700, 750, 800],
                     pumpRunningHours: 650,
@@ -1241,6 +1365,7 @@
                 },
                 "Bajpe": {
                     supply: [90, 91, 92, 93, 92, 91, 90],
+                    coordinates: [12.98, 74.88], // Approx
                     chlorine: [0.5, 0.5, 0.4, 0.5, 0.4, 0.5, 0.5],
                     fhtc: [1500, 1550, 1600, 1650, 1700],
                     pumpRunningHours: 320,
@@ -1339,7 +1464,7 @@
 
             // --- Update Dashboard UI for selected village ---
             function updateDashboardForVillage(village) {
-                const data = villageData[village] || { supply: [], chlorine: [], fhtc: [], grievances: [], logs: [] };
+                const data = villageData[village] || { supply: [95, 98, 97, 99, 96, 98, 100], chlorine: [0.5, 0.4, 0.6, 0.5, 0.4, 0.5, 0.5], fhtc: [1000, 1100, 1150, 1200, 1250], grievances: [], logs: [] };
                 // Update main chart (overview)
                 if (waterChartInstance) { waterChartInstance.destroy(); waterChartInstance = null; }
                 setCanvasHeight('waterChart');
@@ -1382,8 +1507,8 @@
                         }]
                     },
                     options: {
-                        responsive: false,
-                        maintainAspectRatio: false,
+                        responsive: true,
+                        maintainAspectRatio: true,
                         scales: {
                             y: { beginAtZero: true, grid: { drawBorder: false } },
                             x: { grid: { display: false } }
@@ -1403,12 +1528,70 @@
                 document.getElementById('coverage').textContent = coveragePercent;
                 document.getElementById('active-alerts').textContent = data.grievances ? data.grievances.length : 0;
 
-                // Update System Status Overview values
-                if (document.getElementById("pump-status-overview")) {
-                    document.getElementById("pump-status-overview").textContent = villageData[village]?.pumpStatus || "Unknown";
+                // Update Grievance Tracker
+                const grievanceTracker = document.getElementById('grievance-tracker');
+                if (grievanceTracker) {
+                    const grievances = data.grievances || [];
+                    if (grievances.length === 0) {
+                        grievanceTracker.innerHTML = `<p class="text-center text-gray-500">No active grievances for this village.</p>`;
+                    } else {
+                        grievanceTracker.innerHTML = grievances.map((g, index) => {
+                            let statusColor, icon;
+                            switch (g.status) {
+                                case 'Resolved':
+                                    statusColor = 'bg-green-100 text-green-800';
+                                    icon = 'check-circle';
+                                    break;
+                                case 'In Progress':
+                                    statusColor = 'bg-yellow-100 text-yellow-800';
+                                    icon = 'wrench';
+                                    break;
+                                default: // New, Pending
+                                    statusColor = 'bg-red-100 text-red-800';
+                                    icon = 'shield-alert';
+                            }
+                            return `
+                                <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg" data-grievance-id="${index}">
+                                    <div class="${statusColor.split(' ')[0]} ${statusColor.split(' ')[1].replace('text-', 'bg-').replace('800', '-600')} p-2 rounded-full mt-1">
+                                        <i data-lucide="${icon}" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold">${g.type} at ${g.location}</p>
+                                        <p class="text-sm text-gray-500">Status: 
+                                            <span class="grievance-status px-2 py-1 rounded-full text-xs font-medium ${statusColor}">${g.status}</span>
+                                        </p>
+                                        <select class="grievance-status-select mt-2 border rounded px-2 py-1 text-sm">
+                                            <option value="Pending" ${g.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                            <option value="In Progress" ${g.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                                            <option value="Resolved" ${g.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                                        </select>
+                                        <p class="text-xs text-gray-400">Reported ${g.date || 'recently'}</p>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
                 }
-                if (document.getElementById("pump-hours-overview")) {
-                    document.getElementById("pump-hours-overview").textContent = (villageData[village]?.pumpRunningHours || 0) + " hrs";
+
+                // Update Logs List
+                const logsList = document.getElementById('logs-list');
+                if (logsList) {
+                    const logs = data.logs || [];
+                    if (logs.length === 0) {
+                        logsList.innerHTML = `<li class="text-center text-gray-500">No logs available for this village.</li>`;
+                    } else {
+                        logsList.innerHTML = logs.map(log => {
+                            const iconMap = { "FTK Test Passed": "check-circle-2", "Pump Maintenance": "sliders-horizontal", "Pressure drop": "alert-triangle", "Low chlorine": "alert-triangle", "Water sample": "flask-conical", "new FHTC": "home", "Pipeline repair": "wrench", "Routine inspection": "check-circle-2", "Leak detected": "shield-alert" };
+                            const colorMap = { "FTK Test Passed": "green", "Pump Maintenance": "blue", "Pressure drop": "yellow", "Low chlorine": "red", "Water sample": "blue", "new FHTC": "blue", "Pipeline repair": "yellow", "Routine inspection": "green", "Leak detected": "red" };
+                            const logKey = Object.keys(iconMap).find(key => log.toLowerCase().includes(key.toLowerCase())) || "file-text";
+                            return `
+                                <li class="flex items-center space-x-3 text-sm p-3 bg-gray-50 rounded-lg">
+                                    <i data-lucide="${iconMap[logKey] || 'file-text'}" class="w-5 h-5 text-${colorMap[logKey] || 'gray'}-500"></i>
+                                    <span class="font-medium text-gray-800">${log}</span>
+                                </li>
+                            `;
+                        }).join('');
+                    }
                 }
 
                 // Generate and display predictive alerts
@@ -1546,58 +1729,7 @@
                 });
               });
 
-              return alerts;
-            }
-
-            function displayPredictiveAlerts(alerts) {
-              const container = document.getElementById("aiInsightsTable");
-              if (!container) return;
-              container.innerHTML = `
-                <table class="min-w-full text-sm border border-gray-200 rounded">
-                  <thead class="bg-indigo-50">
-                    <tr>
-                      <th class="px-3 py-2 text-left">Component</th>
-                      <th class="px-3 py-2 text-left">Predicted Issue</th>
-                      <th class="px-3 py-2 text-left">Risk</th>
-                      <th class="px-3 py-2 text-left">Confidence</th>
-                      <th class="px-3 py-2 text-left">Reason</th>
-                      <th class="px-3 py-2 text-left">Action</th>
-                      <th class="px-3 py-2 text-left">Schedule</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${alerts.map(a => `
-                      <tr class="border-t border-gray-200">
-                        <td class="px-3 py-2 font-semibold">${a.component}</td>
-                        <td class="px-3 py-2">${a.predictedIssue}</td>
-                        <td class="px-3 py-2 ${a.risk>70?'text-red-600':a.risk>40?'text-yellow-600':'text-green-600'} font-semibold">${a.risk}</td>
-                        <td class="px-3 py-2">${a.confidence}%</td>
-                        <td class="px-3 py-2">${a.reason}</td>
-                        <td class="px-3 py-2">${a.action}</td>
-                        <td class="px-3 py-2">${a.schedule}</td>
-                      </tr>`).join("")}
-                  </tbody>
-                </table>
-              `;
-              const reportsContainer = document.getElementById("reports-container");
-              if (reportsContainer) {
-                  reportsContainer.innerHTML = `
-                      <h4 class="text-md font-semibold text-gray-800 mb-2">AI Predictive Maintenance Reports</h4>
-                      <ul class="space-y-2">
-                          ${alerts.map(a => `
-                              <li class="p-3 bg-gray-50 rounded shadow">
-                                  <strong>Component:</strong> ${a.component} <br>
-                                  <strong>Predicted Issue:</strong> ${a.predictedIssue} <br>
-                                  <strong>Risk:</strong> <span class="${a.risk>70?'text-red-600':a.risk>40?'text-yellow-600':'text-green-600'} font-semibold">${a.risk}</span> <br>
-                                  <strong>Confidence:</strong> ${a.confidence}% <br>
-                                  <strong>Reason:</strong> ${a.reason} <br>
-                                  <strong>Action:</strong> ${a.action} <br>
-                                  <strong>Schedule:</strong> ${a.schedule}
-                              </li>
-                          `).join('')}
-                      </ul>
-                  `;
-              }
+            return alerts;
             }
 
             function updateRiskSummary(alerts){
@@ -1640,8 +1772,8 @@
 
 
             // --- GEMINI API INTEGRATION ---
-            const apiKey = "AIzaSyBdNkotzhmT4NEKVqHi8FsriAbOpbIMLBo"; // API key should be set in environment or securely
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const apiKey = "AIzaSyBdNkotzhmT4NEKVqHi8FsriAbOpbIMLBo"; // WARNING: Do not expose API keys in client-side code in production. Use a backend proxy.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             // --- Maintenance Reports Section ---
             function generateReports(village) {
@@ -1673,6 +1805,96 @@
                 generateReports(village);
             };
 
+            // Input validation functions
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+
+            function validateRequired(value) {
+                return value.trim() !== '';
+            }
+
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.textContent = message;
+                toast.className = `fixed bottom-4 right-4 px-4 py-2 rounded shadow-lg animate-bounce z-50 ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            }
+
+            // Contact form submission
+            const contactForm = document.getElementById('contact-form');
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const btnText = submitBtn.querySelector('.button-text');
+                const btnLoader = submitBtn.querySelector('.button-loader');
+
+                const name = document.getElementById('contact-name').value;
+                const email = document.getElementById('contact-email').value;
+                const subject = document.getElementById('contact-subject').value;
+                const message = document.getElementById('contact-message').value;
+    
+                if (!validateRequired(name) || !validateRequired(email) || !validateRequired(subject) || !validateRequired(message)) {
+                    showToast('All fields are required.', 'error');
+                    return;
+                }
+                if (!validateEmail(email)) {
+                    showToast('Please enter a valid email address.', 'error');
+                    return;
+                }
+    
+                // Set sending state
+                submitBtn.disabled = true;
+                btnText.textContent = 'Sending...';
+                btnLoader.classList.remove('hidden');
+    
+                // Simulate sending with a timeout
+                setTimeout(() => {
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Send Message';
+                    btnLoader.classList.add('hidden');
+                    showToast('Message sent successfully! We will get back to you soon.');
+                    contactForm.reset();
+                }, 1500);
+            });
+
+            // Enhance grievance form validation
+            const grievanceForm = document.getElementById('grievance-form');
+            grievanceForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const issueType = grievanceForm.querySelector('select').value;
+                const location = grievanceForm.querySelector('input[type="text"]').value;
+                const details = grievanceForm.querySelector('textarea').value;
+
+                if (!validateRequired(issueType) || !validateRequired(location) || !validateRequired(details)) {
+                    showToast('Please fill in all grievance fields.', 'error');
+                    return;
+                }
+
+                // Proceed with AI analysis
+                const aiGrievanceModal = document.getElementById('ai-grievance-modal');
+                aiGrievanceModal.classList.remove('hidden');
+                aiGrievanceModal.classList.add('show');
+                const aiGrievanceModalContent = document.getElementById('ai-grievance-modal-content');
+                aiGrievanceModalContent.innerHTML = '<div class="flex justify-center items-center p-8"><div class="loader"></div></div>';
+
+                // Simulate AI analysis (in real app, call API)
+                setTimeout(() => {
+                    aiGrievanceModalContent.innerHTML = `
+                        <h4 class="font-bold text-lg text-gray-800">Issue: ${issueType} at ${location}</h4>
+                        <p><strong>Priority:</strong> <span class="text-red-600 font-semibold">High</span> (Potential for water wastage and contamination)</p>
+                        <p><strong>Recommended Action:</strong></p>
+                        <ol class="list-decimal list-inside space-y-2 bg-gray-50 p-3 rounded-lg">
+                            <li>Immediately dispatch the local plumber to assess the leak's severity.</li>
+                            <li>Temporarily shut off the water supply to the affected line to prevent further loss.</li>
+                            <li>Notify residents in ${location} about the temporary disruption.</li>
+                        </ol>`;
+                }, 1500);
+            });
+
             // Enhance Gemini API call with error handling and correct payload structure
             async function callGeminiApi(prompt, button, outputElement) {
                 button.disabled = true;
@@ -1680,13 +1902,16 @@
 
                 try {
                     const payload = {
-                        prompt: {
-                            text: prompt
-                        },
-                        temperature: 0.7,
-                        maxOutputTokens: 512,
-                        topP: 0.8,
-                        topK: 40
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            candidateCount: 1,
+                            maxOutputTokens: 512,
+                            topP: 0.8,
+                            topK: 40
+                        }
                     };
                     const response = await fetch(apiUrl, {
                         method: 'POST',
@@ -1699,15 +1924,15 @@
                     }
 
                     const result = await response.json();
-                    const text = result?.candidates?.[0]?.output || result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (text) {
-                        outputElement.innerHTML = text.replace(/\*/g, '•');
+                        outputElement.innerHTML = text.replace(/\n/g, '<br>').replace(/\*/g, '•');
                     } else {
                         outputElement.textContent = "Could not generate a response. Please try again.";
                     }
                 } catch (error) {
                     console.error("Gemini API call failed:", error);
-                    outputElement.textContent = "Failed to generate AI content. Please check the connection and try again.";
+                    outputElement.textContent = "Failed to generate AI content. Please check your internet connection and try again.";
                 } finally {
                     button.disabled = false;
                 }
@@ -1722,8 +1947,8 @@
                 }
                 let rowsHtml = `
                     <table class="min-w-full text-sm border border-gray-200 rounded">
-                        <thead class="bg-indigo-50">
-                            <tr>
+                        <thead class="bg-gray-100">
+                            <tr class="bg-gray-100">
                                 <th class="px-3 py-2 text-left">Component</th>
                                 <th class="px-3 py-2 text-left">Predicted Issue</th>
                                 <th class="px-3 py-2 text-left">Risk</th>
@@ -1749,7 +1974,7 @@
                             break;
                     }
                     rowsHtml += `
-                        <tr class="border-t border-gray-200 hover:bg-gray-50">
+                        <tr class="border-t border-gray-200 even:bg-gray-50 hover:bg-indigo-50">
                             <td class="px-3 py-2 font-semibold">${alert.component}</td>
                             <td class="px-3 py-2">${alert.predictedIssue}</td>
                             <td class="px-3 py-2 ${priorityClass} font-semibold">${alert.risk}</td>
@@ -1805,24 +2030,30 @@
             const liveSubtabContents = document.querySelectorAll('.live-subtab-content');
             liveSubtabBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    liveSubtabBtns.forEach(b => b.classList.remove('border-blue-600', 'text-blue-600'));
+                    liveSubtabBtns.forEach(b => {
+                        b.classList.remove('border-blue-600', 'text-blue-600');
+                        b.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    this.classList.remove('border-transparent', 'text-gray-500');
                     this.classList.add('border-blue-600', 'text-blue-600');
                     const subtab = this.dataset.subtab;
                     liveSubtabContents.forEach(c => c.classList.add('hidden'));
                     document.getElementById(subtab).classList.remove('hidden');
+
+                    // Initialize charts on subtab click
+                    if (subtab === 'water-quality' && !waterQualityTrendChart) {
+                        initWaterQualityTrendChart();
+                    }
                 });
             });
 
             // --- Water Quality Chart & Inputs Binding ---
-            let waterQualityChart;
-            function initWaterQualityChart(chlorine, ph, turbidity) {
-                const ctx = document.getElementById('waterQualityChart');
+            function initWaterQualityTrendChart() {
+                const ctx = document.getElementById('waterQualityTrendChart');
                 if (!ctx) return;
-                if (waterQualityChart) {
-                    waterQualityChart.destroy();
-                    waterQualityChart = null;
-                }
-                waterQualityChart = new Chart(ctx, {
+                if (waterQualityTrendChart) waterQualityTrendChart.destroy();
+                
+                waterQualityTrendChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: ['Chlorine (mg/L)', 'pH', 'Turbidity (NTU)'],
@@ -1838,37 +2069,228 @@
                         }]
                     },
                     options: {
-                        responsive: false,
-                        maintainAspectRatio: false,
+                        responsive: true,
+                        maintainAspectRatio: true,
                         scales: {
                             y: { beginAtZero: true }
                         }
                     }
                 });
             }
+            
+            function updateHealthAdvisory() {
+                const micro = document.getElementById('input-micro').value;
+                const fluoride = parseFloat(document.getElementById('input-fluoride').value);
+                const lead = parseFloat(document.getElementById('input-lead').value);
+                const arsenic = parseFloat(document.getElementById('input-arsenic').value);
+                const turbidity = parseFloat(document.getElementById('input-turbidity').value);
+                const ph = parseFloat(document.getElementById('input-ph').value);
 
-            // Bind sliders to chart and display
-            const inputChlorine = document.getElementById('input-chlorine');
-            const inputPh = document.getElementById('input-ph');
-            const inputTurbidity = document.getElementById('input-turbidity');
-            const displayChlorine = document.getElementById('display-chlorine');
-            const displayPh = document.getElementById('display-ph');
-            const displayTurbidity = document.getElementById('display-turbidity');
+                const advisoryBox = document.getElementById('health-advisory-alert');
+                const alertContent = document.getElementById('alert-content');
+                const icon = advisoryBox.querySelector('i');
 
-            function updateWaterQualityUI() {
-                displayChlorine.textContent = Number(inputChlorine.value).toFixed(2);
-                displayPh.textContent = Number(inputPh.value).toFixed(2);
-                displayTurbidity.textContent = Number(inputTurbidity.value).toFixed(1);
-                initWaterQualityChart(Number(inputChlorine.value), Number(inputPh.value), Number(inputTurbidity.value));
+                let issues = [];
+                if (micro !== "0") issues.push("Microbiological contamination detected.");
+                if (fluoride > 1.5) issues.push("Fluoride level is high.");
+                if (lead > 10) issues.push("Lead level exceeds safe limit.");
+                if (arsenic > 10) issues.push("Arsenic level exceeds safe limit.");
+                if (turbidity > 5) issues.push("Turbidity is high (cloudy water).");
+                if (ph < 6.5 || ph > 8.5) issues.push("pH level is outside the recommended range.");
+
+                if (issues.length > 0) {
+                    advisoryBox.classList.remove('border-green-500');
+                    advisoryBox.classList.add('border-red-500');
+                    icon.className = 'w-6 h-6 text-red-500 mr-2';
+                    icon.setAttribute('data-lucide', 'shield-alert');
+                    alertContent.className = 'text-red-700';
+                    alertContent.innerHTML = `<strong>Warning:</strong> Water may be unsafe.<ul>${issues.map(i => `<li class="list-disc ml-5">${i}</li>`).join('')}</ul>`;
+                } else {
+                    advisoryBox.classList.remove('border-red-500');
+                    advisoryBox.classList.add('border-green-500');
+                    icon.className = 'w-6 h-6 text-green-500 mr-2';
+                    icon.setAttribute('data-lucide', 'shield-check');
+                    alertContent.className = 'text-green-700';
+                    alertContent.textContent = "All parameters are within safe limits. Water is safe for consumption.";
+                }
+                lucide.createIcons();
             }
 
-            if (inputChlorine && inputPh && inputTurbidity) {
-                inputChlorine.addEventListener('input', updateWaterQualityUI);
-                inputPh.addEventListener('input', updateWaterQualityUI);
-                inputTurbidity.addEventListener('input', updateWaterQualityUI);
-                updateWaterQualityUI();
+            const qualityInputs = document.querySelectorAll('#water-quality-form input, #water-quality-form select');
+            qualityInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    // Update display values for range sliders
+                    if (input.type === 'range') {
+                        const displayId = `display-${input.id.split('-')[1]}`;
+                        const displayEl = document.getElementById(displayId);
+                        if (displayEl) {
+                            if (input.id.includes('ph')) {
+                                displayEl.textContent = parseFloat(input.value).toFixed(2);
+                            } else {
+                                displayEl.textContent = parseFloat(input.value).toFixed(1);
+                            }
+                        }
+                    }
+                    updateHealthAdvisory();
+                });
+            });
+            
+            // Weekly Summary Auto-Generation and Mini Chart
+            function generateWeeklySummary() {
+                const summaryOutput = document.getElementById('summary-output');
+                summaryOutput.innerHTML = '<div class="flex justify-center items-center p-4"><div class="loader"></div></div>';
+
+                setTimeout(() => {
+                    const selectedVillage = document.getElementById('village-selector').value;
+                    const data = villageData[selectedVillage];
+
+                    if (data && data.supply && data.chlorine) {
+                        const avgSupply = (data.supply.reduce((a, b) => a + b, 0) / data.supply.length).toFixed(2);
+                        const avgChlorine = (data.chlorine.reduce((a, b) => a + b, 0) / data.chlorine.length).toFixed(2);
+                        const grievancesCount = data.grievances ? data.grievances.length : 0;
+                        const logsCount = data.logs ? data.logs.length : 0;
+
+                        summaryOutput.innerHTML = `
+    <strong>Weekly Summary for ${selectedVillage}:</strong><br>
+    • Average Water Supply: ${avgSupply} kL/day<br>
+    • Average Chlorine Level: ${avgChlorine} mg/L<br>
+    • Grievances Reported: ${grievancesCount}<br>
+    • Log Entries: ${logsCount}<br>
+    • System Status: ${grievancesCount > 0 ? "Issues reported" : "All systems operational"}
+                        `;
+                    } else {
+                        summaryOutput.innerHTML = "No data available for the selected village.";
+                    }
+                }, 800);
             }
-        });
+
+            document.getElementById('generate-summary-btn')?.addEventListener('click', generateWeeklySummary);
+            document.getElementById('village-selector')?.addEventListener('change', generateWeeklySummary);
+            generateWeeklySummary(); // Initial call
+
+            // Status update logic
+            document.querySelectorAll('.grievance-status-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    const grievanceItem = this.closest('[data-grievance-id]');
+                    if (!grievanceItem) return;
+                    const statusSpan = grievanceItem.querySelector('.grievance-status');
+                    const val = this.value;
+                    if (!statusSpan) return;
+                    statusSpan.textContent = val;
+                    statusSpan.className = 'grievance-status px-2 py-1 rounded-full text-xs font-medium';
+                    if (val === "Resolved") {
+                        statusSpan.classList.add('bg-green-100', 'text-green-800');
+                    } else if (val === "In Progress") {
+                        statusSpan.classList.add('bg-yellow-100', 'text-yellow-800');
+                    }
+                });
+            });
+
+            // Attachment preview logic
+            const attachmentInput = document.getElementById('grievance-attachment');
+            const attachmentPreview = document.getElementById('attachment-preview');
+            attachmentInput?.addEventListener('change', function() {
+                if (attachmentPreview) {
+                    attachmentPreview.innerHTML = '';
+                    Array.from(this.files).forEach(file => {
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(file);
+                        img.className = 'w-16 h-16 object-cover rounded border';
+                        attachmentPreview.appendChild(img);
+                    });
+                }
+            });
+
+            // Notification for new grievance
+            document.getElementById('grievance-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                showToast("New grievance reported! Check Live Grievance Tracker.", "info");
+                // Reset form
+                this.reset();
+                if (attachmentPreview) attachmentPreview.innerHTML = '';
+            });
+
+            // --- AI Grievance Modal Logic ---
+            const closeAIGrievanceModalBtn = document.getElementById('close-ai-grievance-modal-btn');
+            closeAIGrievanceModalBtn?.addEventListener('click', window.closeAIGrievanceModal);
+
+            // Add listener for confirm grievance button
+            const confirmGrievanceBtn = document.getElementById('confirm-grievance-btn');
+            confirmGrievanceBtn?.addEventListener('click', () => {
+                window.closeAIGrievanceModal();
+                
+                // Get data from the form
+                const grievanceForm = document.getElementById('grievance-form');
+                const issueType = grievanceForm.querySelector('select').value;
+                const location = grievanceForm.querySelector('input[type="text"]').value;
+
+                // Add to the data model
+                const village = villageSelector.value;
+                if (villageData[village]) {
+                    villageData[village].grievances.unshift({
+                        type: issueType,
+                        location: location,
+                        status: 'Pending',
+                        date: 'Just now'
+                    });
+                    // Refresh the dashboard to show the new grievance
+                    updateDashboardForVillage(village);
+                }
+                showToast("Grievance submitted successfully!", "success");
+            });
+
+            // --- AI Log Analysis ---
+            const analyzeLogsBtn = document.getElementById('analyze-logs-btn');
+            analyzeLogsBtn?.addEventListener('click', function() {
+                const data = getCurrentVillageData();
+                const logsText = data.logs.length > 0
+                    ? data.logs.join('; ')
+                    : 'No logs available.';
+                
+                const prompt = `As a water supply system expert, analyze the following chronological logs for a rural village. Identify any recurring problems, patterns, or potential causal relationships. Provide a concise analysis with actionable recommendations. Logs: ${logsText}`;
+                
+                callGeminiApi(prompt, this, document.getElementById('log-analysis-output'));
+            });
+
+            // Routine check buttons
+            const performCheckBtn = document.getElementById('perform-check-btn');
+            const resetChecksBtn = document.getElementById('reset-checks-btn');
+            performCheckBtn?.addEventListener('click', () => {
+                // Simulate performing checks based on one of the valves
+                const valveStatus = document.getElementById('valve-v1-status')?.textContent || "OPEN";
+                const valveCheckStatusEl = document.getElementById('valve-check-status');
+                if (valveCheckStatusEl) valveCheckStatusEl.textContent = valveStatus;
+
+                const lastQualityTestTime = new Date().toLocaleTimeString();
+                const lastQualityTestEl = document.getElementById('last-quality-test');
+                if (lastQualityTestEl) lastQualityTestEl.textContent = "Today " + lastQualityTestTime;
+                
+                showToast("Routine checks performed successfully!", "success");
+            });
+            resetChecksBtn?.addEventListener('click', () => {
+                dailyPumpHours = 0;
+                const dailyPumpHoursEl = document.getElementById('daily-pump-hours');
+                if (dailyPumpHoursEl) dailyPumpHoursEl.textContent = dailyPumpHours.toFixed(1) + " hrs";
+
+                const valveCheckStatusEl = document.getElementById('valve-check-status');
+                if (valveCheckStatusEl) valveCheckStatusEl.textContent = "OPEN";
+
+                const leakDetectionStatusEl = document.getElementById('leak-detection-status');
+                if (leakDetectionStatusEl) {
+                    leakDetectionStatusEl.textContent = "No Leaks Detected";
+                    leakDetectionStatusEl.className = "font-bold text-green-600";
+                }
+
+                const lastQualityTestEl = document.getElementById('last-quality-test');
+                if (lastQualityTestEl) lastQualityTestEl.textContent = "Not performed today";
+
+                const checkAlertEl = document.getElementById('check-alert');
+                if (checkAlertEl) checkAlertEl.classList.add('hidden');
+
+                showToast("Daily checks reset!", "info");
+            });
+        }); // End of DOMContentLoaded
+
     // --- Household Modal Logic ---
     // Global variable for household modal chart instance
     if (typeof householdModalChartInstance === 'undefined') {
@@ -1924,15 +2346,15 @@
                         pointRadius: 4
                     }]
                 },
-                options: {
-                    responsive: false,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: true, position: 'bottom' } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { drawBorder: false } },
-                        x: { grid: { display: false } }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { display: true, position: 'bottom' } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { drawBorder: false } },
+                            x: { grid: { display: false } }
+                        }
                     }
-                }
             });
         }
     }
@@ -1948,123 +2370,6 @@
             window.householdModalChartInstance = null;
         }
     }
-        document.addEventListener('DOMContentLoaded', function() {
-            // Status update logic
-            document.querySelectorAll('.grievance-status-select').forEach(select => {
-                select.addEventListener('change', function() {
-                    const grievanceItem = this.closest('[data-grievance-id]');
-                    if (!grievanceItem) return;
-                    const statusSpan = grievanceItem.querySelector('.grievance-status');
-                    const val = this.value;
-                    if (!statusSpan) return;
-                    statusSpan.textContent = val;
-                    statusSpan.className = 'grievance-status px-2 py-1 rounded-full text-xs font-medium';
-                    if(val === "Resolved") {
-                        statusSpan.classList.add('bg-green-100', 'text-green-800');
-                    } else if(val === "In Progress") {
-                        statusSpan.classList.add('bg-yellow-100', 'text-yellow-800');
-                    }
-                });
-            });
-
-        // Attachment preview logic
-        const attachmentInput = document.getElementById('grievance-attachment');
-        const attachmentPreview = document.getElementById('attachment-preview');
-        attachmentInput?.addEventListener('change', function() {
-            attachmentPreview.innerHTML = '';
-            Array.from(this.files).forEach(file => {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(file);
-                img.className = 'w-16 h-16 object-cover rounded border';
-                attachmentPreview.appendChild(img);
-            });
-        });
-
-        // Notification for new grievance
-        document.querySelector('#grievances form')?.addEventListener('submit', function(e){
-            e.preventDefault();
-            const toast = document.createElement('div');
-            toast.textContent = "New grievance reported! Check Live Grievance Tracker.";
-            toast.className = 'fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-lg animate-bounce';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-            // Reset form
-            this.reset();
-            attachmentPreview.innerHTML = '';
-        });
-
-        // --- AI Grievance Modal Logic ---
-        const grievanceForm = document.querySelector('#grievances form');
-        const aiGrievanceModal = document.getElementById('ai-grievance-modal');
-        const closeAIGrievanceModalBtn = document.getElementById('close-ai-grievance-modal-btn');
-        const aiGrievanceModalContent = document.getElementById('ai-grievance-modal-content');
-
-        grievanceForm?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            aiGrievanceModal.classList.remove('hidden');
-            aiGrievanceModal.classList.add('show');
-            aiGrievanceModalContent.innerHTML = '<div class="flex justify-center items-center p-8"><div class="loader"></div></div>';
-
-            // Simulate AI analysis
-            setTimeout(() => {
-                aiGrievanceModalContent.innerHTML = `
-                    <h4 class="font-bold text-lg text-gray-800">Issue: Pipe Leakage near Ward 2 Park</h4>
-                    <p><strong>Priority:</strong> <span class="text-red-600 font-semibold">High</span> (Potential for water wastage and contamination)</p>
-                    <p><strong>Recommended Action:</strong></p>
-                    <ol class="list-decimal list-inside space-y-2 bg-gray-50 p-3 rounded-lg">
-                        <li>Immediately dispatch the local plumber to assess the leak's severity.</li>
-                        <li>Temporarily shut off the water supply to the affected line to prevent further loss.</li>
-                        <li>Notify residents in Ward 2 about the temporary disruption.</li>
-                    </ol>`;
-            }, 1500);
-        });
-
-        closeAIGrievanceModalBtn?.addEventListener('click', closeAIGrievanceModal);
-
-        // Add listener for confirm grievance button
-        const confirmGrievanceBtn = document.getElementById('confirm-grievance-btn');
-        confirmGrievanceBtn?.addEventListener('click', () => {
-            closeAIGrievanceModal();
-            const toast = document.createElement('div');
-            toast.textContent = "Grievance submitted successfully!";
-            toast.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg animate-bounce';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        });
-
-        // Routine check buttons
-        const performCheckBtn = document.getElementById('perform-check-btn');
-        const resetChecksBtn = document.getElementById('reset-checks-btn');
-        performCheckBtn?.addEventListener('click', () => {
-            // Simulate performing checks
-            valveCheckStatus = document.getElementById('valve-status').textContent;
-            document.getElementById('valve-check-status').textContent = valveCheckStatus;
-            lastQualityTest = new Date().toLocaleTimeString();
-            document.getElementById('last-quality-test').textContent = "Today " + lastQualityTest;
-            const toast = document.createElement('div');
-            toast.textContent = "Routine checks performed successfully!";
-            toast.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow-lg animate-bounce';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        });
-        resetChecksBtn?.addEventListener('click', () => {
-            dailyPumpHours = 0;
-            valveCheckStatus = "OPEN";
-            leakDetectionStatus = "No Leaks Detected";
-            lastQualityTest = "Not performed today";
-            document.getElementById('daily-pump-hours').textContent = dailyPumpHours.toFixed(1) + " hrs";
-            document.getElementById('valve-check-status').textContent = valveCheckStatus;
-            document.getElementById('leak-detection-status').textContent = leakDetectionStatus;
-            document.getElementById('leak-detection-status').className = "font-bold text-green-600";
-            document.getElementById('last-quality-test').textContent = lastQualityTest;
-            document.getElementById('check-alert').classList.add('hidden');
-            const toast = document.createElement('div');
-            toast.textContent = "Daily checks reset!";
-            toast.className = 'fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow-lg animate-bounce';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        });
-    });
     </script>
     <!-- Household Details Modal -->
     <div id="household-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
