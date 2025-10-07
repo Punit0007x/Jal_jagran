@@ -734,6 +734,221 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
                 mobileMenuBtn.setAttribute('aria-expanded', isExpanded);
             });
 
+            // --- Multilanguage Support with 5 Languages ---
+            const translations = {
+                en: {
+                    overview: "Overview",
+                    households: "Households",
+                    liveData: "Live Data",
+                    aiInsights: "AI Insights",
+                    mapView: "Map View",
+                    grievances: "Grievances",
+                    contact: "Support",
+                    welcomeMsg: "Welcome back! Here's a summary of the water supply system.",
+                    totalHouseholds: "Total Households",
+                    activeConnections: "Active Connections",
+                    coverage: "Coverage",
+                    activeAlerts: "Active Alerts",
+                    weeklyWater: "Weekly Water Supplied (kL)",
+                    systemStatus: "System Status",
+                    pumpStatus: "Pump",
+                    valveStatus: "Valve",
+                    reservoirLevel: "Reservoir Level",
+                    generateSummary: "Generate Summary",
+                    predictiveMaintenance: "Predictive Maintenance Forecast",
+                    analyzeLogs: "Analyze Logs",
+                    searchPlaceholder: "Search..."
+                },
+                hi: {
+                    overview: "अवलोकन",
+                    households: "गृहस्थी",
+                    liveData: "लाइव डेटा",
+                    aiInsights: "एआई अंतर्दृष्टि",
+                    mapView: "मानचित्र दृश्य",
+                    grievances: "शिकायतें",
+                    contact: "सहायता",
+                    welcomeMsg: "स्वागत है! जल आपूर्ति प्रणाली का सारांश यहां है।",
+                    totalHouseholds: "कुल गृहस्थी",
+                    activeConnections: "सक्रिय कनेक्शन",
+                    coverage: "कवरेज",
+                    activeAlerts: "सक्रिय चेतावनी",
+                    weeklyWater: "साप्ताहिक आपूर्ति (किलोलीटर में)",
+                    systemStatus: "सिस्टम स्थिति",
+                    pumpStatus: "पंप",
+                    valveStatus: "वाल्व",
+                    reservoirLevel: "भंडार स्तर",
+                    generateSummary: "सारांश उत्पन्न करें",
+                    predictiveMaintenance: "पूर्वानुमानित रखरखाव पूर्वानुमान",
+                    analyzeLogs: "लॉग विश्लेषण करें",
+                    searchPlaceholder: "लॉग खोजें..."
+                },
+                mr: {
+                    overview: "आढावा",
+                    households: "घराणे",
+                    liveData: "थेट डेटा",
+                    aiInsights: "एआय अंतर्दृष्टी",
+                    mapView: "नकाशा दृश्य",
+                    grievances: "तक्रारी",
+                    contact: "सहाय्यता",
+                    welcomeMsg: "पुन्हा स्वागत आहे! जलपुरवठा प्रणालीचा आढावा येथे आहे.",
+                    totalHouseholds: "एकूण घराणे",
+                    activeConnections: "सक्रिय कनेक्शन्स",
+                    coverage: "व्याप्ती",
+                    activeAlerts: "सक्रिय इशारे",
+                    weeklyWater: "साप्ताहिक पुरवठा (किलोलीटर्स)",
+                    systemStatus: "सिस्टम स्थिती",
+                    pumpStatus: "पंप",
+                    valveStatus: "वाल्व",
+                    reservoirLevel: "साठा पातळी",
+                    generateSummary: "सारांश तयार करा",
+                    predictiveMaintenance: "पूर्वानुमानित देखभाल",
+                    analyzeLogs: "लॉग विश्लेषण करा",
+                    searchPlaceholder: "लॉग शोधा..."
+                },
+                ta: {
+                    overview: "கண்ணோட்டம்",
+                    households: "குடியிருப்புகள்",
+                    liveData: "நேரடி தரவு",
+                    aiInsights: "ஏ.ஐ. நுண்ணறிவு",
+                    mapView: "வரைபடக் காட்சி",
+                    grievances: "புகார்கள்",
+                    contact: "ஆதரவு",
+                    welcomeMsg: "மீண்டும் வரவேற்கிறோம்! நீர் வழங்கல் அமைப்பின் சுருக்கம் இங்கே உள்ளது.",
+                    totalHouseholds: "மொத்த குடியிருப்புகள்",
+                    activeConnections: "செயலில் உள்ள இணைப்புகள்",
+                    coverage: "கவரேஜ்",
+                    activeAlerts: "செயலில் உள்ள எச்சரிக்கைகள்",
+                    weeklyWater: "சப்தாந்த நீர் வழங்கல் (கிலோலிட்டர்)",
+                    systemStatus: "கணினி நிலை",
+                    pumpStatus: "பம்ப்",
+                    valveStatus: "வால்வ்",
+                    reservoirLevel: "இரக்கம் நிலை",
+                    generateSummary: "சுருக்கத்தை உருவாக்கவும்",
+                    predictiveMaintenance: "முன்கூட்டியே பராமரிப்பு முன்னறிவிப்பு",
+                    analyzeLogs: "லாக் பகுப்பாய்வு",
+                    searchPlaceholder: "லாக்கள் தேடவும்..."
+                },
+                kn: {
+                    overview: "ಸಮೀಕ್ಷೆ",
+                    households: "ಗೃಹಗಳು",
+                    liveData: "ನೇರ ಡೇಟಾ",
+                    aiInsights: "ಎಐ ಅಂತರ್ದೃಷ್ಟಿ",
+                    mapView: "ನಕ್ಷೆ ನೋಟ",
+                    grievances: "ಗೆಳವಣಿಗೆಗಳು",
+                    contact: "ಸಹಾಯ",
+                    welcomeMsg: "ಮರುಸ್ವಾಗತ! ನೀರಿನ ಪೂರೈಕೆ ವ್ಯವಸ್ಥೆಯ ಸಂಕ್ಷಿಪ್ತ ವರದಿ ಇಲ್ಲಿದೆ.",
+                    totalHouseholds: "ಒಟ್ಟು ಗೃಹಗಳು",
+                    activeConnections: "ಸಕ್ರಿಯ ಸಂಪರ್ಕಗಳು",
+                    coverage: "ಕವರ್",
+                    activeAlerts: "ಸಕ್ರಿಯ ಎಚ್ಚರಿಕೆಗಳು",
+                    weeklyWater: "ವಾರ್ಷಿಕ ನೀರಿನ ಪೂರೈಕೆ (ಕೆ.ಎಲ್)",
+                    systemStatus: "ಸಿಸ್ಟಮ್ ಸ್ಥಿತಿ",
+                    pumpStatus: "ಪಂಪ್",
+                    valveStatus: "ವಾಲ್ವ್",
+                    reservoirLevel: "ಅಂಗಡಿಗಳ ಮಟ್ಟ",
+                    generateSummary: "ಸಾರಾಂಶವನ್ನು ರಚಿಸಿ",
+                    predictiveMaintenance: "ಭವಿಷ್ಯ ನಿರ್ವಹಣೆ ಮುನ್ನೋಟ",
+                    analyzeLogs: "ಲಾಗ್ ವಿಶ್ಲೇಷಣೆ",
+                    searchPlaceholder: "ಲಾಗ್ ಹುಡುಕಿ..."
+                }
+            };
+
+            // Language Selection Button with Flags
+            const langButtonContainer = document.createElement('div');
+            langButtonContainer.className = "relative ml-4";
+
+            const langButton = document.createElement('button');
+            langButton.id = "language-button";
+            langButton.className = "flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full shadow-lg hover:scale-105 transition-transform duration-300 focus:outline-none";
+            langButton.innerHTML = `<span id="current-lang">EN</span> <i data-lucide="chevron-down" class="w-4 h-4"></i>`;
+            langButtonContainer.appendChild(langButton);
+
+            const langDropdown = document.createElement('div');
+            langDropdown.id = "language-dropdown";
+            langDropdown.className = "absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg hidden z-50";
+            langDropdown.innerHTML = `
+                <button class="lang-option flex items-center gap-2 px-4 py-2 w-full hover:bg-gray-100" data-lang="en">🇬🇧 English</button>
+                <button class="lang-option flex items-center gap-2 px-4 py-2 w-full hover:bg-gray-100" data-lang="hi">🇮🇳 हिंदी</button>
+                <button class="lang-option flex items-center gap-2 px-4 py-2 w-full hover:bg-gray-100" data-lang="mr">🇮🇳 मराठी</button>
+                <button class="lang-option flex items-center gap-2 px-4 py-2 w-full hover:bg-gray-100" data-lang="ta">🇮🇳 தமிழ்</button>
+                <button class="lang-option flex items-center gap-2 px-4 py-2 w-full hover:bg-gray-100" data-lang="kn">🇮🇳 ಕನ್ನಡ</button>
+            `;
+            langButtonContainer.appendChild(langDropdown);
+
+            document.querySelector('header .flex.items-center.space-x-4')?.appendChild(langButtonContainer);
+
+            // Toggle dropdown visibility
+            langButton.addEventListener('click', () => {
+                langDropdown.classList.toggle('hidden');
+            });
+
+            // Language option click
+            langDropdown.querySelectorAll('.lang-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    const lang = e.currentTarget.dataset.lang;
+                    document.getElementById('current-lang').textContent = lang.toUpperCase();
+                    setLanguage(lang);
+                    langDropdown.classList.add('hidden');
+                });
+            });
+
+            // Close dropdown if clicked outside
+            document.addEventListener('click', (e) => {
+                if (!langButtonContainer.contains(e.target)) {
+                    langDropdown.classList.add('hidden');
+                }
+            });
+
+            // Function to update all translatable elements
+            function setLanguage(lang) {
+                const t = translations[lang];
+                if(!t) return;
+
+                // Sidebar
+                document.querySelector('[data-tab="overview"] span').textContent = t.overview;
+                document.querySelector('[data-tab="households"] span').textContent = t.households;
+                document.querySelector('[data-tab="live-data"] span').textContent = t.liveData;
+                document.querySelector('[data-tab="ai-insights"] span').textContent = t.aiInsights;
+                document.querySelector('[data-tab="map"] span').textContent = t.mapView;
+                document.querySelector('[data-tab="grievances"] span').textContent = t.grievances;
+                document.querySelector('[data-tab="contact"] span').textContent = t.contact;
+
+                // Header
+                const headerTitle = document.getElementById('header-title');
+                if(headerTitle) headerTitle.textContent = t.overview;
+                const welcomeMsg = document.querySelector('p.text-gray-500');
+                if(welcomeMsg) welcomeMsg.textContent = t.welcomeMsg;
+
+                // Stat cards
+                const statLabels = [
+                    document.querySelector('#total-households').previousElementSibling,
+                    document.querySelector('#active-connections').previousElementSibling,
+                    document.querySelector('#coverage').previousElementSibling,
+                    document.querySelector('#active-alerts').previousElementSibling
+                ];
+                if(statLabels[0]) statLabels[0].textContent = t.totalHouseholds;
+                if(statLabels[1]) statLabels[1].textContent = t.activeConnections;
+                if(statLabels[2]) statLabels[2].textContent = t.coverage;
+                if(statLabels[3]) statLabels[3].textContent = t.activeAlerts;
+
+                // Buttons
+                const summaryBtnSpan = document.getElementById('generate-summary-btn')?.querySelector('span');
+                if(summaryBtnSpan) summaryBtnSpan.textContent = t.generateSummary;
+                const forecastBtnSpan = document.getElementById('generate-forecast-btn')?.querySelector('span');
+                if(forecastBtnSpan) forecastBtnSpan.textContent = t.predictiveMaintenance;
+                const analyzeLogsBtnSpan = document.getElementById('analyze-logs-btn')?.querySelector('span');
+                if(analyzeLogsBtnSpan) analyzeLogsBtnSpan.textContent = t.analyzeLogs;
+
+                // Input placeholders
+                const searchInput = document.getElementById('search-input');
+                if(searchInput) searchInput.placeholder = t.searchPlaceholder;
+                const logSearchInput = document.getElementById('log-search-input');
+                if(logSearchInput) logSearchInput.placeholder = t.searchPlaceholder;
+            }
+
+            // Set default language on load
+            setLanguage('en');
+
             // --- Accessibility: Focus Management for Sidebar ---
             function trapFocus(element) {
                 const focusableEls = element.querySelectorAll('a[href]:not([disabled]), button:not([disabled]), textarea:not([disabled]), input[type="text"]:not([disabled]), input[type="radio"]:not([disabled]), input[type="checkbox"]:not([disabled]), select:not([disabled])');
