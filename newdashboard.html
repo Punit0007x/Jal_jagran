@@ -1187,11 +1187,27 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
                 // Set initial view to the center of Dakshina Kannada district
                 const initialCoords = [12.87, 75.04]; // Approximate center of Dakshina Kannada district
 
-                mapInstance = L.map('map-container').setView(initialCoords, 12);
-
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                // Define base layers
+                const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(mapInstance);
+                });
+
+                const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                });
+
+                mapInstance = L.map('map-container', {
+                    center: initialCoords,
+                    zoom: 12,
+                    layers: [satelliteLayer] // Set satellite view as the default
+                });
+
+                const baseMaps = {
+                    "Satellite View": satelliteLayer,
+                    "Street View": streetLayer
+                };
+
+                L.control.layers(baseMaps).addTo(mapInstance);
 
                 assetLayerGroup = L.layerGroup().addTo(mapInstance);
 
