@@ -583,7 +583,14 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
                             </label>
                         </div>
                     </div>
-                    <div id="map-container" class="w-full h-[600px] rounded-lg z-10"></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="lg:col-span-3">
+                            <div id="map-container" class="w-full h-[600px] rounded-lg z-10"></div>
+                        </div>
+                        <div class="lg:col-span-1">
+                            <div id="map-legend-container" class="bg-gray-50 p-4 rounded-lg h-full"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
