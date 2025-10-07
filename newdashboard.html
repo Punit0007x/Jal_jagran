@@ -561,7 +561,28 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
             <!-- Map Tab -->
             <div id="map" class="tab-content">
                 <div class="bg-white p-6 rounded-2xl shadow-md">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Geographical Overview of Water Assets</h3>
+                    <div class="flex flex-col md:flex-row justify-between md:items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 md:mb-0">Geographical Overview of Water Assets</h3>
+                        <!-- Map Filters -->
+                        <div id="map-filters" class="flex flex-wrap gap-2 md:gap-4">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" data-asset-type="Pump" class="map-filter-checkbox h-4 w-4 rounded text-red-600 focus:ring-red-500" checked>
+                                <span class="text-sm font-medium text-gray-700">Pumps</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" data-asset-type="Valve" class="map-filter-checkbox h-4 w-4 rounded text-yellow-600 focus:ring-yellow-500" checked>
+                                <span class="text-sm font-medium text-gray-700">Valves</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" data-asset-type="Filter" class="map-filter-checkbox h-4 w-4 rounded text-blue-600 focus:ring-blue-500" checked>
+                                <span class="text-sm font-medium text-gray-700">Filters</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" data-asset-type="Sensor" class="map-filter-checkbox h-4 w-4 rounded text-green-600 focus:ring-green-500" checked>
+                                <span class="text-sm font-medium text-gray-700">Sensors</span>
+                            </label>
+                        </div>
+                    </div>
                     <div id="map-container" class="w-full h-[600px] rounded-lg z-10"></div>
                 </div>
             </div>
@@ -1273,6 +1294,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
                 // Add Legend to the map
                 const legend = L.control({position: 'bottomleft'});
 
+                // Add event listeners for map filters
+                document.querySelectorAll('.map-filter-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => {
+                        addAssetsToMap(panchayatSelector.value);
+                    });
+                });
                 legend.onAdd = function (map) {
                     const div = L.DomUtil.create('div', 'info legend');
                     div.innerHTML += '<h4>Map Legend</h4>';
@@ -1317,6 +1344,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
                 // Otherwise, show assets for all villages.
                 const villagesToShow = panchayatName ? villagesInPanchayat : Object.keys(villageData);
 
+                // Get the state of the filters
+                const activeFilters = new Set();
+                document.querySelectorAll('.map-filter-checkbox:checked').forEach(checkbox => {
+                    activeFilters.add(checkbox.dataset.assetType);
+                });
+
+
                 villagesToShow.forEach(villageName => {
                   const village = villageData[villageName];
                   if (!village || !village.coordinates) return;
@@ -1357,16 +1391,16 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
                   };
 
                   if (village.pumps) {
-                      village.pumps.forEach(pump => addAsset(pump, 'Pump', 'custom-marker-red'));
+                      if (activeFilters.has('Pump')) village.pumps.forEach(pump => addAsset(pump, 'Pump', 'custom-marker-red'));
                   }
                   if (village.valves) {
-                      village.valves.forEach(valve => addAsset(valve, 'Valve', 'custom-marker-yellow'));
+                      if (activeFilters.has('Valve')) village.valves.forEach(valve => addAsset(valve, 'Valve', 'custom-marker-yellow'));
                   }
                   if (village.filters) {
-                      village.filters.forEach(filter => addAsset(filter, 'Filter', 'custom-marker-blue'));
+                      if (activeFilters.has('Filter')) village.filters.forEach(filter => addAsset(filter, 'Filter', 'custom-marker-blue'));
                   }
                   if (village.sensors) {
-                      village.sensors.forEach(sensor => addAsset(sensor, 'Sensor', 'custom-marker-green'));
+                      if (activeFilters.has('Sensor')) village.sensors.forEach(sensor => addAsset(sensor, 'Sensor', 'custom-marker-green'));
                   }
               });
 
@@ -1632,19 +1666,19 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
             // --- Panchayat & Village Data ---
             // Updated structure: { PanchayatName: [village1, village2, ...], ... }
             const panchayatVillages = {
-                "Belthangady Taluka": [
+                "Belthangady Taluk": [
                     "Ujire", "Belthangady", "Kaniyoor", "Laila", "Kokkada", "Kalthodu"
                 ],
-                "Bantwal Taluka": [
+                "Bantwal Taluk": [
                     "Sajipamooda", "Bantwal", "Panemangalore", "Kalladka", "Kinnigoli", "Bajjodi"
                 ],
-                "Puttur Taluka": [
+                "Puttur Taluk": [
                     "Aryapu", "Puttur", "Nettanige Mudnoor", "Ainekidu", "Koppa", "Kannikodi"
                 ],
-                "Sullia Taluka": [
+                "Sullia Taluk": [
                     "Sullia", "Aletty", "Aranthodu", "Bellare", "Kanive", "Nalkeri"
                 ],
-                "Mangaluru Taluka": [
+                "Mangaluru Taluk": [
                     "Mangaluru Rural", "Mulki", "Surathkal", "Bajpe", "Ullal", "Thokur"
                 ]
             };
@@ -2321,7 +2355,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
 
             // For AI: use selected village's data if available
             function getCurrentVillageData() {
-                return villageData[villageSelector.value] || demoData;
+                return villageData[villageSelector.value] || villageData["Ujire"];
             }
 
             // --- Enhanced Predictive Maintenance Engine ---
@@ -2749,7 +2783,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient
                     const grievancesText = data.grievances.length > 0
                         ? data.grievances.map(g => `${g.type} at ${g.location} (Status: ${g.status})`).join(', ')
                         : 'No new grievances';
-                    const prompt = `You are a water management expert for a rural Indian village. Based on the following data for the past week, write a concise summary report for the Gram Panchayat in simple language. Highlight key achievements, identify potential issues, and suggest one practical focus area for the upcoming week. Data: Daily Water Supplied ('000 Litres): ${data.supply.join(', ')}. Daily Chlorine Levels (mg/L): ${data.chlorine.join(', ')}. Grievances: ${grievancesText}.`;
+                    const prompt = `You are a water management expert for a rural Indian village. Based on the following data for the past week for village ${villageSelector.value}, write a concise summary report for the Gram Panchayat in simple language. Highlight key achievements, identify potential issues, and suggest one practical focus area for the upcoming week. Data: Daily Water Supplied (kL): ${data.supply.join(', ')}. Daily Chlorine Levels (mg/L): ${data.chlorine.join(', ')}. Grievances: ${grievancesText}.`;
                     callGeminiApi(prompt, summaryBtn, document.getElementById('summary-output'));
                 });
             }
